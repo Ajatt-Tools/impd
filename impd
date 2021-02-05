@@ -227,9 +227,15 @@ make_condenced() {
 }
 
 add_notify() {
-	make_condenced "${1:?}" &&
+	local -r video=${1:?}
+	notify() {
 		command -v notify-send >/dev/null &&
-		notify-send "$program" "$(basename -- "$1") added to immersion pod"
+			notify-send "$program" "$(basename -- "$video") added to Immersion pod"
+	}
+	case $video in
+		*youtube.com* | *youtu.be*) add_yt "$video" && notify ;;
+		*) make_condenced "$video" && notify ;;
+	esac
 }
 
 add() {
@@ -246,6 +252,14 @@ add_stdin() {
 
 add_recent() {
 	find_recent_videos | add_stdin
+}
+
+add_yt() {
+	youtube-dl \
+		-x \
+		-f bestaudio/best \
+		-o "$immersionpod_dir/$current/%(uploader)s%(title)s.%(ext)s" \
+		"${*:?}"
 }
 
 archive() {
