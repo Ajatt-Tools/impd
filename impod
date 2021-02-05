@@ -22,6 +22,8 @@ readonly program='immersionpod'
 readonly current='current'
 readonly archive='archive'
 readonly config_filepath=${XDG_CONFIG_HOME:-$HOME/.config}/$program/config
+readonly tmp_dir="/tmp/$program"
+readonly chunks_dir="$tmp_dir/chunks"
 
 load_default_config() {
 	langs='jpn,eng,rus'
@@ -33,6 +35,7 @@ load_default_config() {
 ensure_dirs() {
 	mkdir -p "$(dirname -- "${config_filepath:?}")"
 	mkdir -p "$immersionpod_dir"/{$current,$archive}
+	mkdir -p "$chunks_dir"
 }
 
 echo_help() {
@@ -53,8 +56,9 @@ probe_tracks() {
 }
 
 best_track() {
-	local -r video=${1:?}
-	local -r tracks=$(probe_tracks a "$video")
+	local -r track_type=${1:?}
+	local -r video=${2:?}
+	local -r tracks=$(probe_tracks "$track_type" "$video")
 
 	while IFS= read -r lang; do
 		while IFS= read -r track; do
@@ -96,17 +100,36 @@ fetch_video_title() {
 	fi
 }
 
-_add() {
+extract_subtitle() {
 	local -r input="${1:?}"
-	local -r output="$immersionpod_dir/$current/$(basename -- "${input%.*}").ogg"
+	local -r output="${2:?}"
+	local -r track_num=0:$(best_track s "$input")
+
+	echo "Extracting subtitles from #$track_num of $(basename -- "$input")..."
+	ffmpeg -nostdin \
+		-loglevel error \
+		-hide_banner \
+		-n \
+		-i "$input" \
+		-map_metadata -1 \
+		-vn \
+		-an \
+		-map "${track_num:-s}" \
+		-f srt "$output" &&
+		echo "$output has been written."
+}
+
+extract_audio() {
+	local -r input="${1:?}"
+	local -r output="${2:-$immersionpod_dir/$current/$(basename -- "${input%.*}").ogg}"
 	local -r title="$(fetch_video_title "$input")"
-	local -r track_num=0:$(best_track "$input")
+	local -r track_num=0:$(best_track a "$input")
 
 	[[ ! -r "$input" ]] && echo "ERROR: Can't read file $input." && return 1
 	[[ ! -w "$(dirname -- "$output")" ]] && echo "ERROR: Can't write file $output." && return 1
 	[[ -f "$output" ]] && echo "WARN: $(basename -- "$output") already exists. Doing nothing." && return 2
 
-	echo "Processing track #$track_num of $(basename -- "$input")..."
+	echo "Extracting audio from #$track_num of $(basename -- "$input")..."
 	ffmpeg -nostdin \
 		-loglevel error \
 		-hide_banner \
@@ -125,19 +148,89 @@ _add() {
 		echo "$output has been written."
 }
 
-__add() {
-	_add "${1:?}" && notify-send "$program" "$(basename -- "$1") added to immersion pod"
+make_chunk() {
+	local -r input="${1:?}"
+	local -r output="${2:?}"
+	local -r start="${3:?}"
+	local -r end="${4:?}"
+	echo "$start,$end"
+	ffmpeg -nostdin \
+		-loglevel error \
+		-hide_banner \
+		-n \
+		-vn \
+		-i "$input" \
+		-map_metadata -1 \
+		-codec:a copy \
+		-ss "$start"  \
+		-to "$end" \
+		"$output"
+}
+
+make_condenced() {
+	local -r video=${1:?}
+	local -r base=$(basename -- "${video%.*}")
+	local -r subtitles="$tmp_dir/$base.srt"
+	local -r audio="$tmp_dir/$base.ogg"
+	local -r condenced_audio="$immersionpod_dir/$current/$base.ogg"
+	local -r chunks_file="$tmp_dir/$base.list"
+
+	if [[ -f "$condenced_audio" ]]; then
+		echo "WARN: $(basename -- "$condenced_audio") already exists. Doing nothing." && return 2
+	fi
+
+	if [[ ! -f "$audio" ]]; then
+		extract_audio "$video" "$audio" || exit 1
+	fi
+	if [[ ! -f "$subtitles" ]]; then
+		if ! extract_subtitle "$video" "$subtitles"; then
+			echo "Failed to condense the audio. Added without condensing."
+			mv "$audio" "$condenced_audio"
+			return
+		fi
+	fi
+
+	local timings start end
+	while read -r timings; do
+		timings=${timings//,/.}
+		start=${timings% --> *}
+		end=${timings#* --> }
+		make_chunk "$audio" "$chunks_dir/${base}_${start}.ogg" "$start" "$end"
+	done < <(grep ' --> ' "$subtitles")
+
+	find "$chunks_dir" -type f | tac | sed "s/^/file '/g; s/$/'/g" > "$chunks_file"
+
+	ffmpeg -nostdin \
+		-hide_banner \
+		-loglevel error \
+		-vn \
+		-n \
+		-f concat \
+		-safe 0 \
+		-i "$chunks_file" \
+		-c copy \
+		"$condenced_audio"
+	local -r ret=$?
+
+	# cleanup
+	rm -rf -- "${chunks_dir:?}"/*
+
+	return $ret
+}
+
+add_notify() {
+	make_condenced "${1:?}" && notify-send "$program" "$(basename -- "$1") added to immersion pod"
 }
 
 add() {
 	for video in "$@"; do
-		__add "$video"
+		add_notify "$video"
 	done
 }
 
 add_stdin() {
 	while IFS= read -r -d $'\0' video; do
-		__add "$video"
+		add_notify "$video"
 	done
 }
 
@@ -150,7 +243,7 @@ rotate() {
 
 	local -r archive_fol="$immersionpod_dir/$archive/$(date '+%Y-%V')"
 
-	echo -e "Archiving old episodes..."
+	echo "Archiving old episodes..."
 
 	old_episodes=()
 	while IFS= read -r -d $'\0' filename; do
@@ -211,6 +304,7 @@ main() {
 		echo_help
 		exit 1
 	fi
+	rm -rf -- "${tmp_dir:?}"/*
 }
 
 #
