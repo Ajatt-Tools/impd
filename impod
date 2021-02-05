@@ -1,0 +1,219 @@
+#!/bin/bash
+#
+# Immersion Pod - Passive listening management tool
+# Copyright (C) 2021  Ren Tatsumoto. <tatsu at autistici.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+# Any modifications to this file must keep this entire header intact.
+
+readonly program='immersionpod'
+readonly current='current'
+readonly archive='archive'
+readonly config_filepath=${XDG_CONFIG_HOME:-$HOME/.config}/$program/config
+
+load_default_config() {
+	langs='jpn,eng,rus'
+	prefer_internal_subs=yes
+	video_dir=~/Videos/ongoing
+	bitrate='32k'
+}
+
+ensure_config_dir_exists() {
+	mkdir -p "$(dirname -- "${config_filepath:?}")"
+}
+
+echo_help() {
+	cat <<-EOF
+		TODO help
+	EOF
+}
+
+probe_tracks() {
+	local -r track_type=${1:?}
+	local -r video_fp=${2:?}
+	ffprobe \
+		-loglevel error \
+		-select_streams "$track_type" \
+		-show_entries stream=index:stream_tags=language,title \
+		-print_format csv=print_section=0 \
+		"$video_fp"
+}
+
+best_track() {
+	local -r video=${1:?}
+	local -r tracks=$(probe_tracks a "$video")
+
+	while IFS= read -r lang; do
+		while IFS= read -r track; do
+			track_num=$(cut -d, -f1 <<<"$track")
+			track_lang=$(cut -d, -f2 <<<"$track")
+			if [[ $lang == "$track_lang" ]]; then
+				echo "$track_num"
+				return
+			fi
+		done <<<"$tracks"
+	done <<<"${langs//,/$'\n'}"
+	unset lang track
+}
+
+find_recent_videos() {
+	# Search files that have been modified in the last N days
+	find "$video_dir" \
+		-type f \( -name '*.mkv' -o -name '*.mp4' \) \
+		-mtime '-10' "-print0" || exit 2
+}
+
+fetch_video_title() {
+	local -r input="${1:?}"
+	from_filename() {
+		basename -- "${input%.*}" | sed -e 's/\[[^]]*\]//g; s/^ *//; s/ *$//'
+	}
+	from_container() {
+		ffprobe -loglevel error \
+			-select_streams v:0 \
+			-show_entries stream_tags=title \
+			-of csv=p=0 "$input"
+	}
+	# shellcheck disable=SC2155
+	local title=$(from_container)
+	if [[ -z $title ]]; then
+		from_filename
+	else
+		echo "$title"
+	fi
+}
+
+_add() {
+	local -r input="${1:?}"
+	local -r output="$immersionpod_dir/$current/$(basename -- "${input%.*}").ogg"
+	local -r title="$(fetch_video_title "$input")"
+	local -r track_num=0:$(best_track "$input")
+
+	[[ ! -r "$input" ]] && echo "ERROR: Can't read file $input." && return 1
+	[[ ! -w "$(dirname -- "$output")" ]] && echo "ERROR: Can't write file $output." && return 1
+	[[ -f "$output" ]] && echo "WARN: $(basename -- "$output") already exists. Doing nothing." && return 2
+
+	echo "Processing track #$track_num of $(basename -- "$input")..."
+	ffmpeg -nostdin \
+		-loglevel error \
+		-hide_banner \
+		-n \
+		-i "$input" \
+		-map_metadata -1 \
+		-vn \
+		-map "${track_num:-a}" \
+		-ac 2 \
+		-ab "$bitrate" \
+		-vbr on \
+		-compression_level 10 \
+		-application voip \
+		-acodec libopus \
+		-metadata title="$title" "$output" &&
+		echo "$output has been written."
+}
+
+__add() {
+	_add "${1:?}" && notify-send "$program" "$(basename -- "$1") added to immersion pod"
+}
+
+add() {
+	for video in "$@"; do
+		__add "$video"
+	done
+}
+
+add_stdin() {
+	while IFS= read -r -d $'\0' video; do
+		__add "$video"
+	done
+}
+
+add_recent() {
+	find_recent_videos | add_stdin
+}
+
+rotate() {
+	add_recent
+
+	local -r archive_fol="$immersionpod_dir/$archive/$(date '+%Y-%V')"
+
+	echo -e "Archiving old episodes..."
+
+	old_episodes=()
+	while IFS= read -r -d $'\0' filename; do
+		old_episodes+=("$filename")
+	done < <(find "$immersionpod_dir/$current" -maxdepth 1 -type f -mtime '+10' -print0)
+
+	# if there are old episodes, crate a dir for them and then move them
+	if [[ ${#old_episodes[@]} -gt 0 ]]; then
+		mkdir -pv "$archive_fol"
+		mv -v "${old_episodes[@]}" "$archive_fol"
+		echo -e "\nArchived ${#old_episodes[@]} episodes."
+	else
+		echo "Nothing to archive."
+	fi
+
+	reshuffle
+}
+
+reshuffle() {
+	mpc update "$program/$current"
+	mpc crop
+	mpc add "$program/$current"
+	mpc shuffle
+	mpc play
+}
+
+get_mpd_folder() {
+	# https://wiki.archlinux.org/index.php/Music_Player_Daemon#Configuration
+	local -r path=~/.config/mpd/mpd.conf
+	{
+		sed -n '/^music_directory/ {s/^music_directory[^"]*"\(.*\)"$/\1/p; q}' "$path"
+		# shellcheck disable=SC2088
+		echo '~/music'
+	} | head -1
+
+} && {
+	_dir="$(get_mpd_folder)/$program"
+	_dir=${_dir//\/\//\/}
+	_dir=${_dir/\~/$HOME}
+	readonly immersionpod_dir=$_dir
+	unset _dir
+}
+
+main() {
+	# Load default configuration, then override settings with the config file
+	load_default_config
+	ensure_config_dir_exists
+	# shellcheck source=/dev/null
+	[[ -f ${config_filepath:?} ]] && source "${config_filepath:?}" #&>/dev/null
+
+	if declare -f "$1" >/dev/null && [[ $1 != "${FUNCNAME[0]}" ]]; then
+		# call arguments verbatim
+		"$@"
+	elif [[ -z $1 ]]; then
+		echo_help
+	else
+		echo "Error: '$1' is not a known function name." >&2
+		echo_help
+		exit 1
+	fi
+}
+
+#
+# MAIN
+# Do not change anything here. If you want to modify the code, edit main()
+#
+main "$@"
