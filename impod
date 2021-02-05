@@ -30,8 +30,9 @@ load_default_config() {
 	bitrate='32k'
 }
 
-ensure_config_dir_exists() {
+ensure_dirs() {
 	mkdir -p "$(dirname -- "${config_filepath:?}")"
+	mkdir -p "$immersionpod_dir"/{$current,$archive}
 }
 
 echo_help() {
@@ -196,7 +197,7 @@ get_mpd_folder() {
 main() {
 	# Load default configuration, then override settings with the config file
 	load_default_config
-	ensure_config_dir_exists
+	ensure_dirs
 	# shellcheck source=/dev/null
 	[[ -f ${config_filepath:?} ]] && source "${config_filepath:?}" #&>/dev/null
 
