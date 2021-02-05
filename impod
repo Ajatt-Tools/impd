@@ -30,6 +30,7 @@ load_default_config() {
 	prefer_internal_subs=yes
 	video_dir=~/Videos/ongoing
 	bitrate='32k'
+	recent_threshold=10
 }
 
 ensure_dirs() {
@@ -77,7 +78,7 @@ find_recent_videos() {
 	# Search files that have been modified in the last N days
 	find "$video_dir" \
 		-type f \( -name '*.mkv' -o -name '*.mp4' \) \
-		-mtime '-10' "-print0" || exit 2
+		-mtime "-$recent_threshold" "-print0" || exit 2
 }
 
 fetch_video_title() {
@@ -248,7 +249,7 @@ rotate() {
 	old_episodes=()
 	while IFS= read -r -d $'\0' filename; do
 		old_episodes+=("$filename")
-	done < <(find "$immersionpod_dir/$current" -maxdepth 1 -type f -mtime '+10' -print0)
+	done < <(find "$immersionpod_dir/$current" -maxdepth 1 -type f -mtime "+$recent_threshold" -print0)
 
 	# if there are old episodes, crate a dir for them and then move them
 	if [[ ${#old_episodes[@]} -gt 0 ]]; then
