@@ -239,9 +239,7 @@ add_recent() {
 	find_recent_videos | add_stdin
 }
 
-rotate() {
-	add_recent
-
+archive() {
 	local -r archive_fol="$immersionpod_dir/$archive/$(date '+%Y-%V')"
 
 	echo "Archiving old episodes..."
@@ -259,7 +257,11 @@ rotate() {
 	else
 		echo "Nothing to archive."
 	fi
+}
 
+rotate() {
+	add_recent
+	archive
 	reshuffle
 }
 
