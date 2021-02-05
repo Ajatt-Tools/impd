@@ -78,7 +78,11 @@ find_recent_videos() {
 	# Search files that have been modified in the last N days
 	find "$video_dir" \
 		-type f \( -name '*.mkv' -o -name '*.mp4' \) \
-		-mtime "-$recent_threshold" "-print0" || exit 2
+		-mtime "-$recent_threshold" -print0 || exit 2
+}
+
+find_outdated_audio() {
+	find "$immersionpod_dir/$current" -maxdepth 1 -type f -mtime "+$recent_threshold" -print0 || exit 2
 }
 
 fetch_video_title() {
@@ -121,13 +125,15 @@ extract_subtitle() {
 }
 
 extract_audio() {
-	local -r input="${1:?}"
-	local -r output="${2:-$immersionpod_dir/$current/$(basename -- "${input%.*}").ogg}"
-	local -r title="$(fetch_video_title "$input")"
-	local -r track_num=0:$(best_track a "$input")
+	local -r input=${1:?}
+	local -r output=${2:-$immersionpod_dir/$current/$(basename -- "${input%.*}").ogg}
+	local -r title=$(fetch_video_title "$input")
+	local -r track_num=$(best_track a "$input")
 
 	[[ ! -r "$input" ]] && echo "ERROR: Can't read file $input." && return 1
 	[[ ! -w "$(dirname -- "$output")" ]] && echo "ERROR: Can't write file $output." && return 1
+
+	# this check is guaranteed to pass if called from make_condenced()
 	[[ -f "$output" ]] && echo "WARN: $(basename -- "$output") already exists. Doing nothing." && return 2
 
 	echo "Extracting audio from #$track_num of $(basename -- "$input")..."
@@ -163,7 +169,7 @@ make_chunk() {
 		-i "$input" \
 		-map_metadata -1 \
 		-codec:a copy \
-		-ss "$start"  \
+		-ss "$start" \
 		-to "$end" \
 		"$output"
 }
@@ -177,7 +183,8 @@ make_condenced() {
 	local -r chunks_file="$tmp_dir/$base.list"
 
 	if [[ -f "$condenced_audio" ]]; then
-		echo "WARN: $(basename -- "$condenced_audio") already exists. Doing nothing." && return 2
+		echo "WARN: $(basename -- "$condenced_audio") already exists. Doing nothing."
+		return 2
 	fi
 
 	if [[ ! -f "$audio" ]]; then
@@ -199,7 +206,7 @@ make_condenced() {
 		make_chunk "$audio" "$chunks_dir/${base}_${start}.ogg" "$start" "$end"
 	done < <(grep ' --> ' "$subtitles")
 
-	find "$chunks_dir" -type f | tac | sed "s/^/file '/g; s/$/'/g" > "$chunks_file"
+	find "$chunks_dir" -type f | tac | sed "s/^/file '/g; s/$/'/g" >"$chunks_file"
 
 	ffmpeg -nostdin \
 		-hide_banner \
@@ -249,7 +256,7 @@ archive() {
 	old_episodes=()
 	while IFS= read -r -d $'\0' filename; do
 		old_episodes+=("$filename")
-	done < <(find "$immersionpod_dir/$current" -maxdepth 1 -type f -mtime "+$recent_threshold" -print0)
+	done < <(find_outdated_audio)
 
 	# if there are old episodes, crate a dir for them and then move them
 	if [[ ${#old_episodes[@]} -gt 0 ]]; then
