@@ -264,6 +264,7 @@ rotate() {
 }
 
 reshuffle() {
+	command -v mpc >/dev/null || return
 	mpc update "$program/$current"
 	mpc crop
 	mpc add "$program/$current"
