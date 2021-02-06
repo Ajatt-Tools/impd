@@ -108,7 +108,7 @@ fetch_video_title() {
 extract_subtitle() {
 	local -r input="${1:?}"
 	local -r output="${2:?}"
-	local -r track_num=0:$(best_track s "$input")
+	local -r track_num=$(best_track s "$input")
 
 	echo "Extracting subtitles from #$track_num of $(basename -- "$input")..."
 	ffmpeg -nostdin \
@@ -119,7 +119,7 @@ extract_subtitle() {
 		-map_metadata -1 \
 		-vn \
 		-an \
-		-map "${track_num:-s}" \
+		-map "0:${track_num:-s}" \
 		-f srt "$output" &&
 		echo "$output has been written."
 }
@@ -144,7 +144,7 @@ extract_audio() {
 		-i "$input" \
 		-map_metadata -1 \
 		-vn \
-		-map "${track_num:-a}" \
+		-map "0:${track_num:-a}" \
 		-ac 2 \
 		-ab "$bitrate" \
 		-vbr on \
