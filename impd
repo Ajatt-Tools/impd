@@ -132,9 +132,7 @@ extract_audio() {
 
 	[[ ! -r "$input" ]] && echo "ERROR: Can't read file $input." && return 1
 	[[ ! -w "$(dirname -- "$output")" ]] && echo "ERROR: Can't write file $output." && return 1
-
-	# this check is guaranteed to pass if called from make_condenced()
-	[[ -f "$output" ]] && echo "WARN: $(basename -- "$output") already exists. Doing nothing." && return 2
+	[[ -f "$output" ]] && echo "WARN: $(basename -- "$output") already exists. Doing nothing." && return
 
 	echo "Extracting audio #$track_num from of $(basename -- "$input")..."
 	ffmpeg -nostdin \
@@ -188,14 +186,12 @@ make_condenced() {
 	local -r condenced_audio="$immersionpod_dir/$current/$base.ogg"
 	local -r chunks_file="$tmp_dir/$base.list"
 
-	if [[ -f "$condenced_audio" ]]; then
+	if [[ -f "$condenced_audio" ]] && [[ -z $global_overwrite ]]; then
 		echo "WARN: $(basename -- "$condenced_audio") already exists. Doing nothing."
 		return 2
 	fi
 
-	if [[ ! -f "$audio" ]]; then
-		extract_audio "$video" "$audio" || exit 1
-	fi
+	extract_audio "$video" "$audio" || exit 1
 
 	local -r ext_subs=$(find_external_subtitles "$video")
 	local -r int_subs=$tmp_dir/$base.srt
@@ -245,7 +241,7 @@ make_condenced() {
 		-hide_banner \
 		-loglevel error \
 		-vn \
-		-n \
+		"-${global_overwrite:-n}" \
 		-f concat \
 		-safe 0 \
 		-i "$chunks_file" \
@@ -276,6 +272,10 @@ add_notify() {
 }
 
 add() {
+	if [[ $1 == '-f' ]]; then
+		readonly global_overwrite='y'
+		shift
+	fi
 	for video in "$@"; do
 		add_notify "$video"
 	done
