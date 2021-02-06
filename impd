@@ -287,7 +287,13 @@ add() {
 		case $arg in
 			-n | --no-condense) readonly global_no_condense='y' ;;
 			-f | --force) readonly global_overwrite='y' ;;
-			*) videos+=( "$arg" ) ;;
+			*) if [[ -f $arg ]]; then
+				videos+=( "$arg" )
+			else
+				echo "Error: '$arg' doesn't exist."
+				echo_help
+				exit 1
+			fi ;;
 		esac
 	done
 	unset arg
