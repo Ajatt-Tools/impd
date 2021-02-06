@@ -278,15 +278,16 @@ add_notify() {
 }
 
 add() {
-	if [[ $1 == '-f' ]] || [[ $1 == '--force' ]]; then
-		readonly global_overwrite='y'
-		shift
-	fi
-	if [[ $1 == '-n' ]] || [[ $1 == '--no-condense' ]]; then
-		readonly global_no_condense='y'
-		shift
-	fi
-	for video in "$@"; do
+	local videos=()
+	for arg; do
+		case $arg in
+			-n | --no-condense) readonly global_no_condense='y' ;;
+			-f | --force) readonly global_overwrite='y' ;;
+			*) videos+=( "$arg" ) ;;
+		esac
+	done
+	unset arg
+	for video in "${videos[@]}"; do
 		add_notify "$video"
 	done
 }
