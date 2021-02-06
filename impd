@@ -174,10 +174,16 @@ make_chunk() {
 		"$output"
 }
 
+find_external_subtitles() {
+	local -r video=${1:?}
+	local -r dir="$(dirname -- "$video")"
+	local -r base="$(basename -- "${video%.*}")"
+	find "$dir" \( -name "$base*.srt" -o -name "$base*.ass" \) | head -1
+}
+
 make_condenced() {
 	local -r video=${1:?}
 	local -r base=$(basename -- "${video%.*}")
-	local -r subtitles="$tmp_dir/$base.srt"
 	local -r audio="$tmp_dir/$base.ogg"
 	local -r condenced_audio="$immersionpod_dir/$current/$base.ogg"
 	local -r chunks_file="$tmp_dir/$base.list"
@@ -190,11 +196,38 @@ make_condenced() {
 	if [[ ! -f "$audio" ]]; then
 		extract_audio "$video" "$audio" || exit 1
 	fi
-	if [[ ! -f "$subtitles" ]]; then
-		if ! extract_subtitle "$video" "$subtitles"; then
-			echo "Failed to condense the audio. Added without condensing."
-			mv "$audio" "$condenced_audio"
-			return
+
+	local -r ext_subs=$(find_external_subtitles "$video")
+	local -r int_subs=$tmp_dir/$base.srt
+
+	if [[ $prefer_internal_subs == 'yes' ]]; then
+		if [[ -f "$int_subs" ]] || extract_subtitle "$video" "$int_subs"; then
+			echo "Extracted internal subtitles."
+			local -r subtitles=$int_subs
+		else
+			echo -n "Failed to extract internal subtitles. "
+			if [[ -f $ext_subs ]]; then
+				echo "External subtitle file '$(basename -- "$ext_subs")' will be used."
+				local -r subtitles=$ext_subs
+			else
+				echo "File will be added without condensing."
+				mv "$audio" "$condenced_audio"
+				return
+			fi
+		fi
+	else
+		if [[ -f $ext_subs ]]; then
+			echo "External subtitle file '$(basename -- "$ext_subs")' will be used."
+			local -r subtitles=$ext_subs
+		else
+			if [[ -f "$int_subs" ]] || extract_subtitle "$video" "$int_subs"; then
+				echo "Extracted internal subtitles."
+				local -r subtitles=$int_subs
+			else
+				echo "Failed to extract internal subtitles. File will be added without condensing."
+				mv "$audio" "$condenced_audio"
+				return
+			fi
 		fi
 	fi
 
@@ -204,7 +237,7 @@ make_condenced() {
 		start=${timings% --> *}
 		end=${timings#* --> }
 		make_chunk "$audio" "$chunks_dir/${base}_${start}.ogg" "$start" "$end"
-	done < <(grep ' --> ' "$subtitles")
+	done < <(grep ' --> ' "${subtitles:?}")
 
 	find "$chunks_dir" -type f | tac | sed "s/^/file '/g; s/$/'/g" >"$chunks_file"
 
