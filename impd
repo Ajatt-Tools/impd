@@ -250,6 +250,7 @@ make_condenced() {
 		-safe 0 \
 		-i "$chunks_file" \
 		-c copy \
+		-metadata title="$(fetch_video_title "${video:?}")" \
 		"$condenced_audio"
 	local -r ret=$?
 
