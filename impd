@@ -132,13 +132,17 @@ extract_audio() {
 
 	[[ ! -r "$input" ]] && echo "ERROR: Can't read file $input." && return 1
 	[[ ! -w "$(dirname -- "$output")" ]] && echo "ERROR: Can't write file $output." && return 1
-	[[ -f "$output" ]] && echo "WARN: $(basename -- "$output") already exists. Doing nothing." && return 1
+
+	if [[ -f "$output" ]] && [[ -z $global_overwrite ]]; then
+		echo "WARN: $(basename -- "$output") already exists. Doing nothing."
+		return 1
+	fi
 
 	echo "Extracting audio #$track_num from of $(basename -- "$input")..."
 	ffmpeg -nostdin \
 		-loglevel error \
 		-hide_banner \
-		-n \
+		"-${global_overwrite:-n}" \
 		-i "$input" \
 		-map_metadata -1 \
 		-vn \
