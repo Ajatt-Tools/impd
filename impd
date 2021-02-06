@@ -40,8 +40,25 @@ ensure_dirs() {
 }
 
 echo_help() {
+	local -r bn=$(basename -- "$0")
 	cat <<-EOF
-		TODO help
+		Usage: $bn ACTION [OPTION] FILE
+		Manage immersion audio.
+
+		ACTION commands:
+		  add [OPTION] FILE	Add files to Immersion pod.
+		    add Options:
+		      -f, --force	Overwrite existing files.
+		      -n, --no-condense	Don't condense audio.
+
+		  add_recent		Add new files from your Videos folder to Immersion pod.
+		  archive		Move episodes older than $recent_threshold days to archive folder.
+		  reshuffle		Re-add files to the playlist, shuffle them and start playing.
+		  rotate		add_recent, archive, reshuffle
+
+		Examples:
+		  $bn add -f 'video.mkv'
+		  $bn rotate
 	EOF
 }
 
