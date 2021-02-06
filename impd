@@ -147,11 +147,11 @@ extract_audio() {
 	local -r title=$(fetch_video_title "$input")
 	local -r track_num=$(best_track a "$input")
 
-	[[ ! -r "$input" ]] && echo "ERROR: Can't read file $input." && return 1
-	[[ ! -w "$(dirname -- "$output")" ]] && echo "ERROR: Can't write file $output." && return 1
+	[[ ! -r "$input" ]] && echo "Error: Can't read file $input." >&2 && return 1
+	[[ ! -w "$(dirname -- "$output")" ]] && echo "Error: Can't write file $output." >&2 && return 1
 
 	if [[ -f "$output" ]] && [[ -z $global_overwrite ]]; then
-		echo "WARN: $(basename -- "$output") already exists. Doing nothing."
+		echo "Warning: $(basename -- "$output") already exists. Doing nothing." >&2
 		return 1
 	fi
 
@@ -210,12 +210,12 @@ make_condensed() {
 	local -r chunks_file=$tmp_dir/$base.list
 
 	if [[ -f "$condenced_audio" ]] && [[ -z $global_overwrite ]]; then
-		echo "WARN: $(basename -- "$condenced_audio") already exists. Doing nothing."
+		echo "Warning: $(basename -- "$condenced_audio") already exists. Doing nothing." >&2
 		return 2
 	fi
 
 	if [[ ! -f "$audio" ]]; then
-		extract_audio "$video" "$audio" || exit 1
+		extract_audio "$video" "$audio" || return 1
 	fi
 
 	local -r ext_subs=$(find_external_subtitles "$video")
@@ -289,11 +289,11 @@ notify_send() {
 
 add_notify() {
 	local -r video=${1:?}
-	local -r msg="$(basename -- "$video") has been added to Immersion pod"
+	local -r msg="$(basename -- "$video") has been added."
 	local -r func=$([[ -z $global_no_condense ]] && echo 'make_condensed' || echo 'extract_audio')
 
 	case $video in
-		*youtube.com* | *youtu.be*) add_yt "$video" && notify_send "$msg" ;;
+		http*youtube.com* | http*youtu.be*) add_yt "$video" && notify_send "$msg" ;;
 		*) "$func" "$video" && notify_send "$msg" ;;
 	esac
 }
@@ -304,12 +304,11 @@ add() {
 		case $arg in
 			-n | --no-condense) readonly global_no_condense='y' ;;
 			-f | --force) readonly global_overwrite='y' ;;
-			*) if [[ -f $arg ]]; then
-				videos+=( "$arg" )
+			*) if [[ -f $arg ]] || [[ $arg == http*youtu*be* ]]; then
+				videos+=("$arg")
 			else
-				echo "Error: '$arg' doesn't exist."
-				echo_help
-				exit 1
+				echo "Error: '$arg' doesn't exist." >&2
+				return 1
 			fi ;;
 		esac
 	done
@@ -330,11 +329,18 @@ add_recent() {
 }
 
 add_yt() {
-	youtube-dl \
-		-x \
-		-f bestaudio/best \
-		-o "$immersionpod_dir/$current/%(uploader)s%(title)s.%(ext)s" \
-		"${*:?}"
+	if command -v youtube-dl >/dev/null; then
+		youtube-dl \
+			--ignore-errors \
+			--extract-audio \
+			--add-metadata \
+			--continue \
+			-f bestaudio/best \
+			-o "$immersionpod_dir/$current/%(uploader)s%(title)s.%(ext)s" \
+			"${*:?}"
+	else
+		echo "Error: 'youtube-dl' is not installed." >&2
+	fi
 }
 
 archive() {
@@ -366,7 +372,7 @@ rotate() {
 }
 
 reshuffle() {
-	command -v mpc >/dev/null || return
+	command -v mpc >/dev/null || echo "Error: mpc is not installed." >&2 && return 1
 	mpc update "$program/$current"
 	mpc crop
 	mpc add "$program/$current"
@@ -382,7 +388,6 @@ get_mpd_folder() {
 		# shellcheck disable=SC2088
 		echo '~/music'
 	} | head -1
-
 } && {
 	_dir="$(get_mpd_folder)/$program"
 	_dir=${_dir//\/\//\/}
@@ -395,20 +400,27 @@ main() {
 	# Load default configuration, then override settings with the config file
 	load_default_config
 	ensure_dirs
-	# shellcheck source=/dev/null
-	[[ -f ${config_filepath:?} ]] && source "${config_filepath:?}" #&>/dev/null
 
-	if declare -f "$1" >/dev/null && [[ $1 != "${FUNCNAME[0]}" ]]; then
+	# shellcheck source=/dev/null
+	if [[ -f ${config_filepath:?} ]]; then
+		source "${config_filepath:?}"
+	fi
+
+	if [[ -z $1 ]] || [[ $1 == --help ]] || [[ $1 == -h ]]; then
+		echo_help
+		exit
+	elif declare -f "$1" >/dev/null && [[ $1 != "${FUNCNAME[0]}" ]]; then
 		# call arguments verbatim
 		"$@"
-	elif [[ -z $1 ]]; then
-		echo_help
+		local -r ret=$?
+		rm -rf -- "${tmp_dir:?}"/*
 	else
 		echo "Error: '$1' is not a known function name." >&2
 		echo_help
 		exit 1
 	fi
-	rm -rf -- "${tmp_dir:?}"/*
+
+	return $ret
 }
 
 #
