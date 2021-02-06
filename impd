@@ -226,15 +226,18 @@ make_condenced() {
 	return $ret
 }
 
+notify_send() {
+	local -r msg=${*:?}
+	command -v notify-send >/dev/null && notify-send "Immersion pod" "$msg"
+	echo "$msg"
+}
+
 add_notify() {
 	local -r video=${1:?}
-	notify() {
-		command -v notify-send >/dev/null &&
-			notify-send "$program" "$(basename -- "$video") added to Immersion pod"
-	}
+	local -r msg="$(basename -- "$video") added to Immersion pod"
 	case $video in
-		*youtube.com* | *youtu.be*) add_yt "$video" && notify ;;
-		*) make_condenced "$video" && notify ;;
+		*youtube.com* | *youtu.be*) add_yt "$video" && notify_send "$msg" ;;
+		*) make_condenced "$video" && notify_send "$msg" ;;
 	esac
 }
 
@@ -276,10 +279,12 @@ archive() {
 	if [[ ${#old_episodes[@]} -gt 0 ]]; then
 		mkdir -pv "$archive_fol"
 		mv -v "${old_episodes[@]}" "$archive_fol"
-		echo -e "\nArchived ${#old_episodes[@]} episodes."
+		local -r msg="Archived ${#old_episodes[@]} episodes."
 	else
-		echo "Nothing to archive."
+		local -r msg="Nothing to archive."
 	fi
+
+	notify_send "$msg"
 }
 
 rotate() {
