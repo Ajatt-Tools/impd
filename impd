@@ -110,7 +110,7 @@ extract_subtitle() {
 	local -r output="${2:?}"
 	local -r track_num=$(best_track s "$input")
 
-	echo "Extracting subtitles from #$track_num of $(basename -- "$input")..."
+	echo "Extracting subtitles #$track_num from of $(basename -- "$input")..."
 	ffmpeg -nostdin \
 		-loglevel error \
 		-hide_banner \
@@ -136,7 +136,7 @@ extract_audio() {
 	# this check is guaranteed to pass if called from make_condenced()
 	[[ -f "$output" ]] && echo "WARN: $(basename -- "$output") already exists. Doing nothing." && return 2
 
-	echo "Extracting audio from #$track_num of $(basename -- "$input")..."
+	echo "Extracting audio #$track_num from of $(basename -- "$input")..."
 	ffmpeg -nostdin \
 		-loglevel error \
 		-hide_banner \
@@ -267,7 +267,7 @@ notify_send() {
 
 add_notify() {
 	local -r video=${1:?}
-	local -r msg="$(basename -- "$video") added to Immersion pod"
+	local -r msg="$(basename -- "$video") has been added to Immersion pod"
 	case $video in
 		*youtube.com* | *youtu.be*) add_yt "$video" && notify_send "$msg" ;;
 		*) make_condenced "$video" && notify_send "$msg" ;;
