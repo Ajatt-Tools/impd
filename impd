@@ -86,7 +86,7 @@ find_outdated_audio() {
 }
 
 fetch_video_title() {
-	local -r input="${1:?}"
+	local -r input=${1:?}
 	from_filename() {
 		basename -- "${input%.*}" | sed -e 's/\[[^]]*\]//g; s/^ *//; s/ *$//'
 	}
@@ -106,8 +106,8 @@ fetch_video_title() {
 }
 
 extract_subtitle() {
-	local -r input="${1:?}"
-	local -r output="${2:?}"
+	local -r input=${1:?}
+	local -r output=${2:?}
 	local -r track_num=$(best_track s "$input")
 
 	echo "Extracting subtitles #$track_num from of $(basename -- "$input")..."
@@ -154,11 +154,13 @@ extract_audio() {
 }
 
 make_chunk() {
-	local -r input="${1:?}"
-	local -r output="${2:?}"
-	local -r start="${3:?}"
-	local -r end="${4:?}"
+	local -r input=${1:?}
+	local -r output=${2:?}
+	local -r start=${3:?}
+	local -r end=${4:?}
+
 	echo "$start,$end"
+
 	ffmpeg -nostdin \
 		-loglevel error \
 		-hide_banner \
@@ -174,17 +176,17 @@ make_chunk() {
 
 find_external_subtitles() {
 	local -r video=${1:?}
-	local -r dir="$(dirname -- "$video")"
-	local -r base="$(basename -- "${video%.*}")"
+	local -r dir=$(dirname -- "$video")
+	local -r base=$(basename -- "${video%.*}")
 	find "$dir" \( -name "$base*.srt" -o -name "$base*.ass" \) | head -1
 }
 
-make_condenced() {
+make_condensed() {
 	local -r video=${1:?}
 	local -r base=$(basename -- "${video%.*}")
-	local -r audio="$tmp_dir/$base.ogg"
-	local -r condenced_audio="$immersionpod_dir/$current/$base.ogg"
-	local -r chunks_file="$tmp_dir/$base.list"
+	local -r audio=$tmp_dir/$base.ogg
+	local -r condenced_audio=$immersionpod_dir/$current/$base.ogg
+	local -r chunks_file=$tmp_dir/$base.list
 
 	if [[ -f "$condenced_audio" ]] && [[ -z $global_overwrite ]]; then
 		echo "WARN: $(basename -- "$condenced_audio") already exists. Doing nothing."
