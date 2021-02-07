@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Immersion Pod - Passive listening management tool
-# Copyright (C) 2021  Ren Tatsumoto. <tatsu at autistici.org>
+# Copyright (C) 2021 Ren Tatsumoto. <tatsu at autistici.org>
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -26,10 +26,10 @@ readonly tmp_dir="/tmp/$program"
 readonly chunks_dir="$tmp_dir/chunks"
 
 load_default_config() {
-	langs='jpn,eng,rus'
+	langs=jpn,eng,rus,ukr
 	prefer_internal_subs=yes
 	video_dir=~/Videos/ongoing
-	bitrate='32k'
+	bitrate=32k
 	recent_threshold=10
 }
 
@@ -45,13 +45,13 @@ echo_help() {
 		Usage: $bn ACTION [OPTION] FILE
 		Manage immersion audio.
 
-		ACTION commands:
+		ACTION Commands:
 		  add [OPTION] FILE	Add files to Immersion pod.
 		    add Options:
 		      -f, --force	Overwrite existing files.
 		      -n, --no-condense	Don't condense audio.
 
-		  add_recent		Add new files from your Videos folder to Immersion pod.
+		  add_recent		Add new files from your video directory to Immersion pod.
 		  archive		Move episodes older than $recent_threshold days to archive folder.
 		  reshuffle		Re-add files to the playlist, shuffle them and start playing.
 		  rotate		add_recent, archive, reshuffle
@@ -122,7 +122,7 @@ fetch_video_title() {
 	fi
 }
 
-extract_subtitle() {
+extract_subtitles() {
 	local -r input=${1:?}
 	local -r output=${2:?}
 	local -r track_num=$(best_track s "$input")
@@ -137,7 +137,8 @@ extract_subtitle() {
 		-vn \
 		-an \
 		-map "0:${track_num:-s}" \
-		-f srt "$output" &&
+		-f "${output##*.}" \
+		"$output" &&
 		echo "$output has been written."
 }
 
@@ -147,8 +148,15 @@ extract_audio() {
 	local -r title=$(fetch_video_title "$input")
 	local -r track_num=$(best_track a "$input")
 
-	[[ ! -r "$input" ]] && echo "Error: Can't read file $input." >&2 && return 1
-	[[ ! -w "$(dirname -- "$output")" ]] && echo "Error: Can't write file $output." >&2 && return 1
+	if [[ ! -r "$input" ]]; then
+		echo "Error: Can't read file $input." >&2
+		return 1
+	fi
+
+	if [[ ! -w "$(dirname -- "$output")" ]]; then
+		echo "Error: Can't write file $output." >&2
+		return 1
+	fi
 
 	if [[ -f "$output" ]] && [[ -z $global_overwrite ]]; then
 		echo "Warning: $(basename -- "$output") already exists. Doing nothing." >&2
@@ -170,7 +178,8 @@ extract_audio() {
 		-compression_level 10 \
 		-application voip \
 		-acodec libopus \
-		-metadata title="$title" "$output" &&
+		-metadata title="$title" \
+		"$output" &&
 		echo "$output has been written."
 }
 
@@ -202,12 +211,12 @@ find_external_subtitles() {
 	find "$dir" \( -name "$base*.srt" -o -name "$base*.ass" \) | head -1
 }
 
-convert_external_subtitles() {
+to_srt() {
 	local -r input=${1:?}
-	local -r output=${2:-$tmp_dir/$(basename -- "${input%.*}").srt}
+	local -r output=${2:?}
 
 	ffmpeg -nostdin \
-		-loglevel quiet \
+		-loglevel error \
 		-hide_banner \
 		-y \
 		-vn \
@@ -215,38 +224,34 @@ convert_external_subtitles() {
 		-i "$input" \
 		-f srt \
 		"$output"
-
-	echo "$output"
 }
 
 make_condensed() {
 	local -r video=${1:?}
 	local -r base=$(basename -- "${video%.*}")
 	local -r audio=$tmp_dir/$base.ogg
-	local -r condenced_audio=$immersionpod_dir/$current/$base.ogg
+	local -r condenced_audio=${2:-$immersionpod_dir/$current/$base.ogg}
 	local -r chunks_file=$tmp_dir/$base.list
+	local -r subtitles=$tmp_dir/$base.srt
+	local -r ext_subtitles=$(find_external_subtitles "$video")
 
-	if [[ -f "$condenced_audio" ]] && [[ -z $global_overwrite ]]; then
+	if [[ -f $condenced_audio ]] && [[ -z $global_overwrite ]]; then
 		echo "Warning: $(basename -- "$condenced_audio") already exists. Doing nothing." >&2
 		return 2
 	fi
 
-	if [[ ! -f "$audio" ]]; then
+	if [[ ! -f $audio ]]; then
 		extract_audio "$video" "$audio" || return 1
 	fi
 
-	local -r ext_subs=$(find_external_subtitles "$video")
-	local -r int_subs=$tmp_dir/$base.srt
-
 	if [[ $prefer_internal_subs == 'yes' ]]; then
-		if [[ -f "$int_subs" ]] || extract_subtitle "$video" "$int_subs"; then
+		if [[ -f "$subtitles" ]] || extract_subtitles "$video" "$subtitles"; then
 			echo "Extracted internal subtitles."
-			local -r subtitles=$int_subs
 		else
 			echo -n "Failed to extract internal subtitles. "
-			if [[ -f $ext_subs ]]; then
-				echo "External subtitle file '$(basename -- "$ext_subs")' will be used."
-				local -r subtitles=$(convert_external_subtitles "$ext_subs")
+			if [[ -f $ext_subtitles ]]; then
+				echo "External subtitle file '$(basename -- "$ext_subtitles")' will be used."
+				to_srt "$ext_subtitles" "$subtitles"
 			else
 				echo "File will be added without condensing."
 				mv "$audio" "$condenced_audio"
@@ -254,13 +259,12 @@ make_condensed() {
 			fi
 		fi
 	else
-		if [[ -f $ext_subs ]]; then
-			echo "External subtitle file '$(basename -- "$ext_subs")' will be used."
-			local -r subtitles=$(convert_external_subtitles "$ext_subs")
+		if [[ -f $ext_subtitles ]]; then
+			echo "External subtitle file '$(basename -- "$ext_subtitles")' will be used."
+			to_srt "$ext_subtitles" "$subtitles"
 		else
-			if [[ -f "$int_subs" ]] || extract_subtitle "$video" "$int_subs"; then
+			if [[ -f "$subtitles" ]] || extract_subtitles "$video" "$subtitles"; then
 				echo "Extracted internal subtitles."
-				local -r subtitles=$int_subs
 			else
 				echo "Failed to extract internal subtitles. File will be added without condensing."
 				mv "$audio" "$condenced_audio"
@@ -420,7 +424,7 @@ main() {
 
 	# shellcheck source=/dev/null
 	if [[ -f ${config_filepath:?} ]]; then
-		source "${config_filepath:?}"
+		source "$config_filepath"
 	fi
 
 	if [[ -z $1 ]] || [[ $1 == --help ]] || [[ $1 == -h ]]; then
@@ -434,7 +438,7 @@ main() {
 	else
 		echo "Error: '$1' is not a known function name." >&2
 		echo_help
-		exit 1
+		local -r ret=1
 	fi
 
 	return $ret
