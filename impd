@@ -202,6 +202,23 @@ find_external_subtitles() {
 	find "$dir" \( -name "$base*.srt" -o -name "$base*.ass" \) | head -1
 }
 
+convert_external_subtitles() {
+	local -r input=${1:?}
+	local -r output=${2:-$tmp_dir/$(basename -- "${input%.*}").srt}
+
+	ffmpeg -nostdin \
+		-loglevel quiet \
+		-hide_banner \
+		-y \
+		-vn \
+		-an \
+		-i "$input" \
+		-f srt \
+		"$output"
+
+	echo "$output"
+}
+
 make_condensed() {
 	local -r video=${1:?}
 	local -r base=$(basename -- "${video%.*}")
@@ -229,7 +246,7 @@ make_condensed() {
 			echo -n "Failed to extract internal subtitles. "
 			if [[ -f $ext_subs ]]; then
 				echo "External subtitle file '$(basename -- "$ext_subs")' will be used."
-				local -r subtitles=$ext_subs
+				local -r subtitles=$(convert_external_subtitles "$ext_subs")
 			else
 				echo "File will be added without condensing."
 				mv "$audio" "$condenced_audio"
@@ -239,7 +256,7 @@ make_condensed() {
 	else
 		if [[ -f $ext_subs ]]; then
 			echo "External subtitle file '$(basename -- "$ext_subs")' will be used."
-			local -r subtitles=$ext_subs
+			local -r subtitles=$(convert_external_subtitles "$ext_subs")
 		else
 			if [[ -f "$int_subs" ]] || extract_subtitle "$video" "$int_subs"; then
 				echo "Extracted internal subtitles."
