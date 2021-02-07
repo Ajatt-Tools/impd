@@ -417,6 +417,16 @@ get_mpd_folder() {
 	unset _dir
 }
 
+version() {
+	cat <<-EOF
+	$(basename -- "$0") v0.1
+	Copyright (C) $(date +%Y) Ren Tatsumoto.
+	License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
+	This is free software: you are free to change and redistribute it.
+	There is NO WARRANTY, to the extent permitted by law.
+	EOF
+}
+
 main() {
 	# Load default configuration, then override settings with the config file
 	load_default_config
@@ -429,7 +439,8 @@ main() {
 
 	if [[ -z $1 ]] || [[ $1 == --help ]] || [[ $1 == -h ]]; then
 		echo_help
-		exit
+	elif [[ $1 == --version ]] || [[ $1 == -v ]]; then
+		version
 	elif declare -f "$1" >/dev/null && [[ $1 != "${FUNCNAME[0]}" ]]; then
 		# call arguments verbatim
 		"$@"
