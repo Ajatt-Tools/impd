@@ -397,20 +397,22 @@ reshuffle() {
 	mpc play
 }
 
-get_mpd_folder() {
+get_mpd_dir() {
 	# https://wiki.archlinux.org/index.php/Music_Player_Daemon#Configuration
 	local -r path=~/.config/mpd/mpd.conf
+	# shellcheck disable=SC2088
 	{
-		sed -n '/^music_directory/ {s/^music_directory[^"]*"\(.*\)"$/\1/p; q}' "$path"
-		# shellcheck disable=SC2088
 		echo '~/music'
-	} | head -1
-} && {
-	_dir="$(get_mpd_folder)/$program"
-	_dir=${_dir//\/\//\/}
-	_dir=${_dir/\~/$HOME}
-	readonly immersionpod_dir=$_dir
-	unset _dir
+		sed -n '/^music_directory/ {s/^music_directory[^"]*"\(.*\)"$/\1/p; q}' "$path"
+	} | tail -1
+}
+
+set_impd_dir() {
+	local dir
+	dir=$(get_mpd_dir)/$program
+	dir=${dir//\/\//\/}
+	dir=${dir/\~/$HOME}
+	readonly immersionpod_dir=$dir
 }
 
 version() {
@@ -426,6 +428,7 @@ version() {
 main() {
 	# Load default configuration, then override settings with the config file
 	load_default_config
+	set_impd_dir
 	ensure_dirs
 
 	# shellcheck source=/dev/null
