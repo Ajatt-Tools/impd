@@ -63,8 +63,14 @@ echo_help() {
 }
 
 probe_tracks() {
-	local -r track_type=${1:?}
-	local -r video_fp=${2:?}
+	local -r track_type=${1:?Track type is not set.}
+	local -r video_fp=${2:?Video filepath is not set.}
+
+	if [[ $track_type != 'a' ]] && [[ $track_type != 's' ]]; then
+		echo "Invalid track type. Please specify 'a' or 's'."
+		return 1
+	fi
+
 	ffprobe \
 		-loglevel error \
 		-select_streams "$track_type" \
@@ -143,6 +149,11 @@ extract_audio() {
 	local -r output=${2:-$immersionpod_dir/$current/$(basename -- "${input%.*}").ogg}
 	local -r title=$(fetch_video_title "$input")
 	local -r track_num=$(best_track a "$input")
+
+	if [[ $output != *.ogg ]]; then
+		echo "Error: filename should end with '.ogg'" >&2
+		return 1
+	fi
 
 	if [[ ! -r "$input" ]]; then
 		echo "Error: Can't read file $input." >&2
@@ -231,7 +242,12 @@ make_condensed() {
 	local -r subtitles=$tmp_dir/$base.srt
 	local -r ext_subtitles=$(find_external_subtitles "$video")
 
-	if [[ -f $condenced_audio ]] && [[ -z $global_overwrite ]]; then
+	if [[ $condenced_audio != *.ogg ]]; then
+		echo "Error: filename should end with '.ogg'" >&2
+		return 1
+	fi
+
+	if [[ -f $condenced_audio ]] && [[ -z ${global_overwrite-} ]]; then
 		echo "Warning: $(basename -- "$condenced_audio") already exists. Doing nothing." >&2
 		return 2
 	fi
@@ -389,7 +405,10 @@ rotate() {
 }
 
 reshuffle() {
-	command -v mpc >/dev/null || echo "Error: mpc is not installed." >&2 && return 1
+	if ! command -v mpc >/dev/null; then
+		echo "Error: mpc is not installed." >&2
+		return 1
+	fi
 	mpc update "$program/$current"
 	mpc crop
 	mpc add "$program/$current"
