@@ -323,11 +323,17 @@ notify_send() {
 add_notify() {
 	local -r video=${1:?}
 	local -r msg="$(basename -- "$video") has been added."
-	local -r func=$([[ -z $global_no_condense ]] && echo 'make_condensed' || echo 'extract_audio')
+	local -r func=$([[ -z ${global_no_condense-} ]] && echo 'make_condensed' || echo 'extract_audio')
 
 	case $video in
-		http*youtube.com* | http*youtu.be*) add_yt "$video" && notify_send "$msg" ;;
-		*) "$func" "$video" && notify_send "$msg" ;;
+		http*youtube.com* | http*youtu.be*)
+			add_yt "$video" && notify_send "$msg"
+			;;
+		*)
+			if "$func" "$video"; then
+				notify_send "$msg"
+			fi
+			;;
 	esac
 }
 
@@ -337,12 +343,14 @@ add() {
 		case $arg in
 			-n | --no-condense) readonly global_no_condense='y' ;;
 			-f | --force) readonly global_overwrite='y' ;;
-			*) if [[ -f $arg ]] || [[ $arg == http*youtu*be* ]]; then
-				videos+=("$arg")
-			else
-				echo "Error: '$arg' doesn't exist." >&2
-				return 1
-			fi ;;
+			*)
+				if [[ -f $arg ]] || [[ $arg == http*youtu*be* ]]; then
+					videos+=("$arg")
+				else
+					echo "Error: '$arg' doesn't exist." >&2
+					return 1
+				fi
+				;;
 		esac
 	done
 	unset arg
@@ -436,11 +444,11 @@ set_impd_dir() {
 
 version() {
 	cat <<-EOF
-	$(basename -- "$0") v0.1
-	Copyright (C) $(date +%Y) Ren Tatsumoto.
-	License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
-	This is free software: you are free to change and redistribute it.
-	There is NO WARRANTY, to the extent permitted by law.
+		$(basename -- "$0") v0.1
+		Copyright (C) $(date +%Y) Ren Tatsumoto.
+		License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
+		This is free software: you are free to change and redistribute it.
+		There is NO WARRANTY, to the extent permitted by law.
 	EOF
 }
 
@@ -455,22 +463,23 @@ main() {
 		source "$config_filepath"
 	fi
 
-	if [[ -z $1 ]] || [[ $1 == --help ]] || [[ $1 == -h ]]; then
-		echo_help
-	elif [[ $1 == --version ]] || [[ $1 == -v ]]; then
-		version
-	elif declare -f "$1" >/dev/null && [[ $1 != "${FUNCNAME[0]}" ]]; then
-		# call arguments verbatim
-		"$@"
-		local -r ret=$?
-		rm -rf -- "${tmp_dir:?}"/*
-	else
-		echo "Error: '$1' is not a known function name." >&2
-		echo_help
-		local -r ret=1
-	fi
+	case ${1-} in
+		'' | -h | --help) echo_help ;;
+		-v | --version) version ;;
+		*)
+			if declare -f "$1" >/dev/null && [[ $1 != "${FUNCNAME[0]}" ]]; then
+				# call arguments verbatim
+				"$@" || true
+			else
+				echo "Error: '$1' is not a known function name." >&2
+				echo_help
+				exit 1
+			fi
+			;;
 
-	return $ret
+	esac
+
+	rm -rf -- "${tmp_dir:?}"/*
 }
 
 #
