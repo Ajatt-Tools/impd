@@ -79,6 +79,15 @@ probe_tracks() {
 		"$video_fp"
 }
 
+probe() {
+	local -r video_fp=${1:?Video filepath is not set.}
+	echo "Audio tracks:"
+	probe_tracks a "$video_fp"
+	echo
+	echo "Subtitle tracks:"
+	probe_tracks s "$video_fp"
+}
+
 best_track() {
 	local -r track_type=${1:?}
 	local -r video=${2:?}
