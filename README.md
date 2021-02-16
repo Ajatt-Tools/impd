@@ -1,7 +1,7 @@
 # Immersion pod
 
 ![License](https://img.shields.io/github/license/Ajatt-Tools/impd)
-[![Patreon](https://img.shields.io/badge/support-patreon-orange)](https://www.patreon.com/tatsumoto_ren)
+[![Patreon](https://img.shields.io/badge/support-patreon-orange)](https://www.patreon.com/bePatron?u=43555128)
 [![Matrix](https://img.shields.io/badge/chat-join-green.svg)](https://tatsumoto-ren.github.io/blog/join-our-community.html)
 
 > AJATT-style passive listening without bloat.
@@ -104,10 +104,9 @@ Additionally, you can use `impd` to perform miscellaneous operations on media.
 
 ## Contributions
 
-If you've found a bug or want to extend the program, please let us know in the
-[Matrix chat](https://tatsumoto-ren.github.io/blog/join-our-community.html).
-I'm open to all suggestions and pull requests.
+If you want to discuss this program, have found a bug, or want to participate in the development, please join
+[our community](https://tatsumoto-ren.github.io/blog/join-our-community.html).
 
 My special thanks to all my
-[Patreon](https://www.patreon.com/tatsumoto_ren)
+[Patreon](https://www.patreon.com/bePatron?u=43555128)
 supporters for making this project possible.
