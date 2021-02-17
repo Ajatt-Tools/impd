@@ -10,22 +10,23 @@ Passive immersion is one of the key activities in
 [AJATT](http://www.alljapaneseallthetime.com/blog/all-japanese-all-the-time-ajatt-how-to-learn-japanese-on-your-own-having-fun-and-to-fluency/).
 This program lets
 [mpd](https://wiki.archlinux.org/index.php/Music_Player_Daemon)
-users convert foreign language movies and TV shows to audio and use it as immersion material.
-Supports **condensed audio** and creates it by default if subtitles are available in the container or externally.
+users convert foreign language movies and TV shows to audio and use it for passive listening.
+`impd` supports **condensed audio** and creates it by default
+if it finds subtitles in the container or externally.
 
 ## Installation
 
 1) Install dependencies
-   
+
     * Mandatory:
         * [mpd](https://wiki.archlinux.org/index.php/Music_Player_Daemon)
         * [FFmpeg](https://wiki.archlinux.org/index.php/FFmpeg)
-    
+
     * Optional:
         * [mpc](https://archlinux.org/packages/extra/x86_64/mpc/) - Interaction with `mpd`.
         * [libnotify](https://archlinux.org/packages/extra/x86_64/libnotify/) - Desktop notifications.
         * [youtube-dl](https://wiki.archlinux.org/index.php/Youtube-dl) - Adding audio from Youtube.
-    
+
 2) Clone the repo
     ```
     $ git clone URL ~/.local/share/impd
@@ -75,17 +76,18 @@ you only need to run `impd rotate` from time to time.
 **Available commands:**
 
 * `add [OPTION] FILE` - Convert files to audio and add them to Immersion pod.
-    
+
     **Options:**
     * `-f`, `--force` - Overwrite existing files.
     * `-n`, `--no-condense` - Don't condense audio.
 * `add_recent` - Add new files from your video directory to Immersion pod.
 * `archive` - Move episodes older than $recent_threshold days to archive folder.
 * `reshuffle` - Re-add files to the playlist, shuffle them and start playing.
-* `rotate` - Archive old immersion material and make new based on videos in your video directory. 
+* `rotate` - Archive old immersion material and make new based on videos in your video directory.
     Equivalent to `add_recent` > `archive` > `reshuffle`.
 
 **Examples:**
+
 ```
 $ impd add -f 'video.mkv'
 $ impd rotate
@@ -99,7 +101,7 @@ Additionally, you can use `impd` to perform miscellaneous operations on media.
 * `make_condensed video.mkv condensed.ogg` - Convert video to condensed audio.
 * `extract_audio video.mkv audio.ogg` - Extract audio from video without condensing.
 * `extract_subtitles video.mkv subtitles.srt` - Extract internal subtitles.
-* `probe_tracks a|s video.mkv` - Show audio or subtitle tracks available in the container. 
+* `probe_tracks a|s video.mkv` - Show audio or subtitle tracks available in the container.
 * `probe video.mkv` - Probe both audio and subtitle tracks.
 
 ## Contributions
