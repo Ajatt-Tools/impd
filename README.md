@@ -1,8 +1,8 @@
 # Immersion pod
 
+[![Chat](https://img.shields.io/badge/chat-join-green.svg)](https://tatsumoto-ren.github.io/blog/join-our-community.html)
 ![License](https://img.shields.io/github/license/Ajatt-Tools/impd)
-[![Patreon](https://img.shields.io/badge/support-patreon-orange)](https://www.patreon.com/bePatron?u=43555128)
-[![Matrix](https://img.shields.io/badge/chat-join-green.svg)](https://tatsumoto-ren.github.io/blog/join-our-community.html)
+[![Patreon](https://img.shields.io/badge/patreon-support-orange)](https://www.patreon.com/bePatron?u=43555128)
 
 > AJATT-style passive listening without bloat.
 
