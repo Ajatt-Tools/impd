@@ -101,8 +101,7 @@ Additionally, you can use `impd` to perform miscellaneous operations on media.
 * `make_condensed video.mkv condensed.ogg` - Convert video to condensed audio.
 * `extract_audio video.mkv audio.ogg` - Extract audio from video without condensing.
 * `extract_subtitles video.mkv subtitles.srt` - Extract internal subtitles.
-* `probe_tracks a|s video.mkv` - Show audio or subtitle tracks available in the container.
-* `probe video.mkv` - Probe both audio and subtitle tracks.
+* `probe [a|s] video.mkv` - Print tracks available in the container.
 
 ## Contributions
 

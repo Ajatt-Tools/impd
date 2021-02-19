@@ -55,6 +55,7 @@ echo_help() {
 		  archive		Move episodes older than $recent_threshold days to archive folder.
 		  reshuffle		Re-add files to the playlist, shuffle them and start playing.
 		  rotate		add_recent, archive, reshuffle
+		  probe [a|s] FILE	Print streams in FILE
 
 		Examples:
 		  $bn add -f 'video.mkv'
@@ -63,11 +64,16 @@ echo_help() {
 }
 
 probe_tracks() {
-	local -r track_type=${1:?Track type is not set.}
-	local -r video_fp=${2:?Video filepath is not set.}
-
-	if [[ $track_type != 'a' ]] && [[ $track_type != 's' ]]; then
+	if [[ ${1-} =~ ^(a|s)$ ]]; then
+		local -r track_type=$1
+	else
 		echo "Invalid track type. Please specify 'a' or 's'."
+		return 1
+	fi
+	if [[ -f ${2-} ]]; then
+		local -r video_fp=$2
+	else
+		echo "'${2-}' is not a file."
 		return 1
 	fi
 
@@ -80,7 +86,12 @@ probe_tracks() {
 }
 
 probe() {
+	if [[ ${1-} =~ ^(a|s)$ ]]; then
+		probe_tracks "$@"
+		return
+	fi
 	local -r video_fp=${1:?Video filepath is not set.}
+
 	echo "Audio tracks:"
 	probe_tracks a "$video_fp"
 	echo
