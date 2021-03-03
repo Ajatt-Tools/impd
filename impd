@@ -198,6 +198,7 @@ extract_audio() {
 		-i "$input" \
 		-map_metadata -1 \
 		-vn \
+		-sn \
 		-map "0:${track_num:-a}" \
 		-ac 2 \
 		-ab "$bitrate" \
@@ -223,6 +224,7 @@ make_chunk() {
 		-hide_banner \
 		-n \
 		-vn \
+		-sn \
 		-i "$input" \
 		-map_metadata -1 \
 		-codec:a copy \
@@ -319,6 +321,7 @@ make_condensed() {
 		-hide_banner \
 		-loglevel error \
 		-vn \
+		-sn \
 		"-${global_overwrite:-n}" \
 		-f concat \
 		-safe 0 \
