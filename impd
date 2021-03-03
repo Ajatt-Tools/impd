@@ -132,11 +132,11 @@ fetch_video_title() {
 	local -r input=${1:?Path to video file is not set.}
 	strip() {
 		sed -e 's/_/ /g' \
-		-e 's/fansub\|vostfr\|10bits\|BluRay\|x26[45]\|AAC\|flac//gi' \
-		-Ee 's/[0-9]{3,4}[pP]//g' \
-		-Ee 's/(\[|\()[^])]*(\]|\))//g' \
-		-e 's/^ *//; s/ *$//' \
-		-Ee 's/ +/ /g'
+			-e 's/fansub\|vostfr\|10bits\|BluRay\|x26[45]\|AAC\|flac//gi' \
+			-Ee 's/[0-9]{3,4}[pP]//g' \
+			-Ee 's/(\[|\()[^])]*(\]|\))//g' \
+			-e 's/^ *//; s/ *$//' \
+			-Ee 's/ +/ /g'
 	}
 	print_name() {
 		basename -- "${input%.*}"
