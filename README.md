@@ -29,7 +29,7 @@ if it finds subtitles in the container or externally.
 
 2) Clone the repo
     ```
-    $ git clone URL ~/.local/share/impd
+    $ git clone 'https://github.com/Ajatt-Tools/impd.git' ~/.local/share/impd
     ```
 3) Link the `impd` executable somewhere in your PATH
     ```
