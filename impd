@@ -255,6 +255,60 @@ to_srt() {
 		"$output"
 }
 
+get_speech_fragments() {
+	awk -F' --> ' '
+	function time_parts_to_seconds(hours, mins, secs) {
+		return hours * 3600.0 + mins * 60.0 + secs
+	}
+	function str_time_to_seconds(time) {
+		split(time, chunks, ":")
+		gsub(",", ".", chunks[3])
+		return time_parts_to_seconds(chunks[1], chunks[2], chunks[3])
+	}
+	function overlap(t1s, t1e, t2s, t2e) {
+		return (min(t1e, t2e) - max(t1s, t2s)) / (t1e - t1s)
+	}
+	function min(var1, var2) {
+		if (var1 < var2) {
+			return var1
+		} else {
+			return var2
+		}
+	}
+	function max(var1, var2) {
+		if (var1 > var2) {
+			return var1
+		} else {
+			return var2
+		}
+	}
+	BEGIN {
+		prev["start"] = 0
+		prev["end"] = 0
+	}
+	/ --> / {
+		start = str_time_to_seconds($1)
+		end   = str_time_to_seconds($2)
+
+		if (prev["start"] == 0 && prev["end"] == 0) {
+			prev["start"] = start
+			prev["end"] = end
+		} else {
+			if (overlap(prev["start"], prev["end"], start, end) > 0) {
+				prev["start"] = min(prev["start"], start)
+				prev["end"] = max(prev["end"], end)
+			} else {
+				print prev["start"]","prev["end"]
+				prev["start"] = start
+				prev["end"] = end
+			}
+		}
+	}
+	END {
+		print prev["start"]","prev["end"]
+	}' "${1:?}"
+}
+
 make_condensed() {
 	local -r video=${1:?}
 	local -r base=$(basename -- "${video%.*}")
@@ -307,13 +361,10 @@ make_condensed() {
 		fi
 	fi
 
-	local timings start end
-	while read -r timings; do
-		timings=${timings//,/.}
-		start=${timings% --> *}
-		end=${timings#* --> }
+	local start end
+	while IFS=, read -r start end; do
 		make_chunk "$audio" "$chunks_dir/${base}_${start}.ogg" "$start" "$end"
-	done < <(grep ' --> ' "${subtitles:?}")
+	done < <(get_speech_fragments "${subtitles:?}")
 
 	find "$chunks_dir" -type f | tac | sed "s/^/file '/g; s/$/'/g" >"$chunks_file"
 
