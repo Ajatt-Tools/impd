@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Immersion Pod - Passive listening management tool
 # Copyright (C) 2021 Ren Tatsumoto. <tatsu at autistici.org>
@@ -154,10 +154,10 @@ extract_subtitles() {
 		-loglevel error \
 		-hide_banner \
 		-n \
-		-i "$input" \
-		-map_metadata -1 \
 		-vn \
 		-an \
+		-i "$input" \
+		-map_metadata -1 \
 		-map "0:${track_num:-s}" \
 		-f "${output##*.}" \
 		"$output" &&
@@ -195,10 +195,10 @@ extract_audio() {
 		-loglevel error \
 		-hide_banner \
 		"-${global_overwrite:-n}" \
-		-i "$input" \
-		-map_metadata -1 \
 		-vn \
 		-sn \
+		-i "$input" \
+		-map_metadata -1 \
 		-map "0:${track_num:-a}" \
 		-ac 2 \
 		-ab "$bitrate" \
@@ -260,7 +260,7 @@ get_speech_fragments() {
 	function time_parts_to_seconds(hours, mins, secs) {
 		return hours * 3600.0 + mins * 60.0 + secs
 	}
-	function str_time_to_seconds(time) {
+	function str_time_to_seconds(time,    chunks) {
 		split(time, chunks, ":")
 		gsub(",", ".", chunks[3])
 		return time_parts_to_seconds(chunks[1], chunks[2], chunks[3])
@@ -397,18 +397,16 @@ notify_send() {
 add_notify() {
 	local -r video=${1:?}
 	local -r msg="$(basename -- "$video") has been added."
-	local -r func=$([[ -z ${global_no_condense-} ]] && echo 'make_condensed' || echo 'extract_audio')
 
-	case $video in
-		http*youtube.com* | http*youtu.be*)
-			add_yt "$video" && notify_send "$msg"
-			;;
-		*)
-			if "$func" "$video"; then
-				notify_send "$msg"
-			fi
-			;;
-	esac
+	if [[ $video == http*youtu*be* ]]; then
+		func=add_yt
+	elif [[ -z ${global_no_condense-} ]]; then
+		func=make_condensed
+	else
+		func=extract_audio
+	fi
+
+	"$func" "$video" && notify_send "$msg"
 }
 
 add() {
