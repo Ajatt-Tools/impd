@@ -78,14 +78,17 @@ The config file is sourced so don't put stuff like `$ rm -rf ~/*` there, or it w
 **Available commands:**
 
 * `add [OPTION] FILE` - Convert videos to audio and add them to Immersion pod.
+
+    **Arguments for `impd add`:**
+    * `-r`, `--recent` - Add files modified in the last `recent_threshold` days
+    from your video directory to Immersion pod.
+    * `-s`, `--stdin` - Read filenames from stdin.
 * `archive` - Move episodes older than `recent_threshold` days to the archive folder.
 * `reshuffle` - Re-add files to the playlist, shuffle them and start playing.
 * `rotate` - Archive old immersion material and make new based on videos in your video directory.
-    Equivalent to `add_recent` > `archive` > `reshuffle`.
+    Equivalent to `impd add --recent` > `impd archive` > `impd reshuffle`.
 
-**Arguments for `impd add`:**
-* `-r`, `--recent` - Add files modified in the last `recent_threshold` days from your video directory to Immersion pod.
-* `-s`, `--stdin` - Read filenames from stdin.
+
 
 **Optional arguments:**
 * `-f`, `--force` - Overwrite existing files.
