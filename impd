@@ -263,25 +263,25 @@ get_speech_fragments() {
 		prev["end"] = 0
 	}
 	/^[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3} --> [0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}$/ {
-		start = str_time_to_seconds($1)
-		end   = str_time_to_seconds($2)
+		cur["start"] = str_time_to_seconds($1)
+		cur["end"]   = str_time_to_seconds($2)
 
-		if (start == end) {
+		if (cur["start"] == cur["end"]) {
 			// invalid subtitle
 			next
 		}
 
 		if (prev["start"] == 0 && prev["end"] == 0) {
-			prev["start"] = start
-			prev["end"] = end
+			prev["start"] = cur["start"]
+			prev["end"]   = cur["end"]
 		} else {
-			if (overlap(prev["start"], prev["end"], start, end) > 0) {
-				prev["start"] = min(prev["start"], start)
-				prev["end"] = max(prev["end"], end)
+			if (overlap(prev["start"], prev["end"], cur["start"], cur["end"]) > 0) {
+				prev["start"] = min(prev["start"], cur["start"])
+				prev["end"] = max(prev["end"], cur["end"])
 			} else {
 				print prev["start"]","prev["end"]
-				prev["start"] = start
-				prev["end"] = end
+				prev["start"] = cur["start"]
+				prev["end"] = cur["end"]
 			}
 		}
 	}
