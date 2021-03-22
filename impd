@@ -387,34 +387,28 @@ add_notify() {
 
 	if [[ $video == http*youtu*be* ]]; then
 		func=add_yt
-	elif [[ -z ${global_no_condense-} ]]; then
-		func=make_condensed
+	elif [[ -f $video ]]; then
+		if [[ -z ${global_no_condense-} ]]; then
+			func=make_condensed
+		else
+			func=extract_audio
+		fi
 	else
-		func=extract_audio
+		echo "Error: '$video' doesn't exist." >&2
 	fi
 
-	"$func" "$video" && notify_send "$msg"
+	if "$func" "$video"; then
+		notify_send "$msg"
+	fi
 }
 
 add() {
-	local videos=()
+	case ${1-} in
+		-r|--resent|recent) add_recent; return ;;
+		-s|--stdin|stdin) add_stdin; return;;
+	esac
 	for arg; do
-		case $arg in
-			-n | --no-condense) readonly global_no_condense='y' ;;
-			-f | --force) readonly global_overwrite='y' ;;
-			*)
-				if [[ -f $arg ]] || [[ $arg == http*youtu*be* ]]; then
-					videos+=("$arg")
-				else
-					echo "Error: '$arg' doesn't exist." >&2
-					return 1
-				fi
-				;;
-		esac
-	done
-	unset arg
-	for video in "${videos[@]}"; do
-		add_notify "$video"
+		add_notify "$arg"
 	done
 }
 
@@ -551,13 +545,26 @@ main() {
 		source "$config_filepath"
 	fi
 
+	# Process global arguments
+	local args=()
+	for arg; do
+		case $arg in
+			-n | --no-condense) readonly global_no_condense='y' ;;
+			-f | --force) readonly global_overwrite='y' ;;
+			*) args+=("$arg")
+		esac
+	done
+	unset arg
+
 	case ${1-} in
 		'' | -h | --help) echo_help ;;
 		-v | --version) version ;;
 		*)
-			if declare -f "$1" >/dev/null && [[ $1 != "${FUNCNAME[0]}" ]]; then
+			local -r command=${args[0]}
+
+			if declare -f "$command" >/dev/null && [[ $command != "${FUNCNAME[0]}" ]]; then
 				# call arguments verbatim
-				"$@" || true
+				"${args[@]}"
 			else
 				echo "Error: '$1' is not a known function name." >&2
 				echo_help
