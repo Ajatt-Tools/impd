@@ -52,7 +52,9 @@ To configure the program create a config file at `~/.config/immersionpod/config`
     If the option is set to `no`, `impd` tries external subtitles first.
 * `video_dir` - The default directory where your video files are stored.
     The directory is searched for recently added files when you call `impd rotate`.
-* `bitrate` - Audio bitrate. It is recommended to keep it rather low for speech.
+* `bitrate` - Audio bitrate.
+    It is recommended to keep it rather low to save disk space because `impd` deals with speech, not music.
+    Speech doesn't require high bitrates.
 * `recent_threshold` - A file is considered recent if it has been modified in the last X days.
     Audio files that are no longer recent get archived if you call `impd archive`,
     and videos get skipped if you call `impd add_recent`.
