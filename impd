@@ -290,6 +290,11 @@ get_speech_fragments() {
 		start = str_time_to_seconds($1)
 		end   = str_time_to_seconds($2)
 
+		if (start == end) {
+			// invalid subtitle
+			next
+		}
+
 		if (prev["start"] == 0 && prev["end"] == 0) {
 			prev["start"] = start
 			prev["end"] = end
