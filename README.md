@@ -73,7 +73,8 @@ The config file is sourced so don't put stuff like `$ rm -rf ~/*` there, or it w
 
 ## Usage
 
-**Tip:** If you store all your immersion material in `video_dir` like me the only command you need is `impd rotate`.
+**Tip:** If you store all your immersion material in `video_dir` like me
+the only command you are going to need is `impd rotate`.
 
 **Available commands:**
 
@@ -87,8 +88,6 @@ The config file is sourced so don't put stuff like `$ rm -rf ~/*` there, or it w
 * `reshuffle` - Re-add files to the playlist, shuffle them and start playing.
 * `rotate` - Archive old immersion material and make new based on videos in your video directory.
     Equivalent to `impd add --recent` > `impd archive` > `impd reshuffle`.
-
-
 
 **Optional arguments:**
 * `-f`, `--force` - Overwrite existing files.
@@ -112,6 +111,13 @@ Additionally, you can use `impd` to perform miscellaneous operations on media.
 * `extract_audio video.mkv audio.ogg` - Extract audio from video without condensing.
 * `extract_subtitles video.mkv subtitles.srt` - Extract internal subtitles.
 * `probe [a|s] video.mkv` - Print tracks available in the container.
+
+## Condensing
+
+For condensing to work the video files passed to `impd` should have embedded subtitles
+or external .srt/.ass subtitles should be placed in the same folder as the video files
+or in a subfolder relative to the directory that contains the video files.
+External subtitles should have the same names as the corresponding video files except for the extensions.
 
 ## Contributions
 
