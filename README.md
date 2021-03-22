@@ -69,30 +69,34 @@ bitrate=32k
 recent_threshold=10
 ```
 
-The config file is sourced so don't put `$ rm -rf ~/*` there, or it will bite you back.
+The config file is sourced so don't put stuff like `$ rm -rf ~/*` there, or it will bite you back.
 
 ## Usage
 
-**Tip:** If you store all your immersion material in `video_dir` like me
-you only need to run `impd rotate` from time to time.
+**Tip:** If you store all your immersion material in `video_dir` like me the only command you need is `impd rotate`.
 
 **Available commands:**
 
-* `add [OPTION] FILE` - Convert files to audio and add them to Immersion pod.
-
-    **Options:**
-    * `-f`, `--force` - Overwrite existing files.
-    * `-n`, `--no-condense` - Don't condense audio.
-* `add_recent` - Add new files from your video directory to Immersion pod.
+* `add [OPTION] FILE` - Convert videos to audio and add them to Immersion pod.
 * `archive` - Move episodes older than `recent_threshold` days to the archive folder.
 * `reshuffle` - Re-add files to the playlist, shuffle them and start playing.
 * `rotate` - Archive old immersion material and make new based on videos in your video directory.
     Equivalent to `add_recent` > `archive` > `reshuffle`.
 
+**Arguments for `impd add`:**
+* `-r`, `--recent` - Add files modified in the last `recent_threshold` days from your video directory to Immersion pod.
+* `-s`, `--stdin` - Read filenames from stdin.
+
+**Optional arguments:**
+* `-f`, `--force` - Overwrite existing files.
+* `-n`, `--no-condense` - Don't condense audio.
+
 **Examples:**
 
 ```
 $ impd add -f 'video.mkv'
+$ impd add --recent
+$ find /mnt/videos/ | impd add --stdin
 $ impd rotate
 ```
 
