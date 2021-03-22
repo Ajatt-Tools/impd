@@ -23,7 +23,6 @@ readonly current='current'
 readonly archive='archive'
 readonly config_filepath=${XDG_CONFIG_HOME:-$HOME/.config}/$program/config
 readonly tmp_dir="/tmp/$program"
-readonly chunks_dir="$tmp_dir/chunks"
 
 load_default_config() {
 	langs=jpn,eng,rus,ukr
@@ -36,7 +35,7 @@ load_default_config() {
 ensure_dirs() {
 	mkdir -p "$(dirname -- "${config_filepath:?}")"
 	mkdir -p "$immersionpod_dir"/{$current,$archive}
-	mkdir -p "$chunks_dir"
+	mkdir -p "$tmp_dir"
 }
 
 echo_help() {
@@ -317,10 +316,16 @@ get_speech_fragments() {
 make_condensed() {
 	local -r video=${1:?}
 	local -r base=$(basename -- "${video%.*}")
-	local -r audio=$tmp_dir/$base.ogg
+
+	local -r job_dir=$(mktemp -d --tmpdir="$tmp_dir" -t "$base.job-XXXX")
+
+	local -r audio=$job_dir/$base.ogg
 	local -r condenced_audio=${2:-$immersionpod_dir/$current/$base.ogg}
-	local -r chunks_file=$tmp_dir/$base.list
-	local -r subtitles=$tmp_dir/$base.srt
+
+	local -r chunks_dir=$(mktemp -d --tmpdir="$job_dir" -t "chunks-XXXX")
+	local -r chunks_file=$job_dir/chunks.list
+
+	local -r subtitles=$job_dir/$base.srt
 	local -r ext_subtitles=$(find_external_subtitles "$video")
 
 	if [[ $condenced_audio != *.ogg ]]; then
@@ -371,9 +376,9 @@ make_condensed() {
 		make_chunk "$audio" "$chunks_dir/${base}_${start}.ogg" "$start" "$end"
 	done < <(get_speech_fragments "${subtitles:?}")
 
-	find "$chunks_dir" -type f | tac | sed "s/^/file '/g; s/$/'/g" >"$chunks_file"
+	find "$chunks_dir" -type f -name '*.ogg' | tac | sed "s/^/file '/g; s/$/'/g" >"$chunks_file"
 
-	ffmpeg -nostdin \
+	if ffmpeg -nostdin \
 		-hide_banner \
 		-loglevel error \
 		-vn \
@@ -385,12 +390,12 @@ make_condensed() {
 		-c copy \
 		-metadata title="$(fetch_video_title "${video:?}")" \
 		"$condenced_audio"
-	local -r ret=$?
-
-	# cleanup
-	rm -rf -- "${chunks_dir:?}"/*
-
-	return $ret
+	then
+		rm -rf -- "$job_dir"
+		return
+	else
+		return 1
+	fi
 }
 
 notify_send() {
@@ -555,8 +560,6 @@ main() {
 			;;
 
 	esac
-
-	rm -rf -- "${tmp_dir:?}"/*
 }
 
 #
