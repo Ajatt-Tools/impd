@@ -71,7 +71,7 @@ The config file is sourced so don't put `$ rm -rf ~/*` there, or it will bite yo
 
 ## Usage
 
-*Tip:* If you store all your immersion material in one folder like me
+**Tip:** If you store all your immersion material in `video_dir` like me
 you only need to run `impd rotate` from time to time.
 
 **Available commands:**
@@ -82,7 +82,7 @@ you only need to run `impd rotate` from time to time.
     * `-f`, `--force` - Overwrite existing files.
     * `-n`, `--no-condense` - Don't condense audio.
 * `add_recent` - Add new files from your video directory to Immersion pod.
-* `archive` - Move episodes older than $recent_threshold days to archive folder.
+* `archive` - Move episodes older than `recent_threshold` days to the archive folder.
 * `reshuffle` - Re-add files to the playlist, shuffle them and start playing.
 * `rotate` - Archive old immersion material and make new based on videos in your video directory.
     Equivalent to `add_recent` > `archive` > `reshuffle`.
@@ -106,8 +106,9 @@ Additionally, you can use `impd` to perform miscellaneous operations on media.
 
 ## Contributions
 
-If you want to discuss this program, have found a bug, or want to participate in the development, please join
-[our community](https://tatsumoto-ren.github.io/blog/join-our-community.html).
+If you want to discuss this program, have found a bug, or want to participate in the development,
+please join [our community](https://tatsumoto-ren.github.io/blog/join-our-community.html).
+I look forward suggestions and pull requests!
 
 My special thanks to all my
 [Patreon](https://www.patreon.com/bePatron?u=43555128)
