@@ -5,7 +5,7 @@
 ![License](https://img.shields.io/github/license/Ajatt-Tools/impd)
 [![Patreon](https://img.shields.io/badge/patreon-support-orange)](https://www.patreon.com/bePatron?u=43555128)
 
-> AJATT-style passive listening without bloat.
+> AJATT-style passive listening and condensed audio without bloat.
 
 Passive immersion is one of the key activities in
 [AJATT](http://www.alljapaneseallthetime.com/blog/all-japanese-all-the-time-ajatt-how-to-learn-japanese-on-your-own-having-fun-and-to-fluency/).

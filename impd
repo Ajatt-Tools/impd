@@ -127,7 +127,7 @@ extract_subtitles() {
 	local -r output=${2:?}
 	local -r track_num=$(best_track s "$input")
 
-	echo "Extracting subtitles #$track_num from of $(basename -- "$input")..."
+	echo "Extracting track #$track_num [subtitles] from of $(basename -- "$input")..."
 	ffmpeg -nostdin \
 		-loglevel error \
 		-hide_banner \
@@ -168,7 +168,7 @@ extract_audio() {
 		return 1
 	fi
 
-	echo "Extracting audio #$track_num from of $(basename -- "$input")..."
+	echo "Extracting track #$track_num [audio] from of $(basename -- "$input")..."
 	ffmpeg -nostdin \
 		-loglevel error \
 		-hide_banner \
@@ -520,15 +520,18 @@ echo_help() {
 
 		ACTION Commands:
 		  add [OPTION] FILE	Add files to Immersion pod.
-		    add Options:
-		      -f, --force	Overwrite existing files.
-		      -n, --no-condense	Don't condense audio.
+		  Options:
+		    -r, --recent	Add new files from your video directory to Immersion pod.
+		    -s, --stdin		Read filenames from stdin.
 
-		  add_recent		Add new files from your video directory to Immersion pod.
 		  archive		Move episodes older than $recent_threshold days to archive folder.
 		  reshuffle		Re-add files to the playlist, shuffle them and start playing.
-		  rotate		add_recent, archive, reshuffle
-		  probe [a|s] FILE	Print streams in FILE
+		  rotate		Short for add_recent, archive, reshuffle.
+		  probe [a|s] FILE	Print streams in FILE.
+
+		Options:
+		  -f, --force		Overwrite existing files.
+		  -n, --no-condense	Don't condense audio.
 
 		Examples:
 		  $bn add -f 'video.mkv'
