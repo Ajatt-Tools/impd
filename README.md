@@ -17,6 +17,10 @@ if it finds subtitles in the container or externally.
 
 ## Installation
 
+Arch Linux users can install the
+[impd-git](https://aur.archlinux.org/packages/impd-git/)
+AUR package and skip to [Configuration](#configuration).
+
 1) Install dependencies
 
     * Mandatory:
