@@ -58,6 +58,7 @@ To configure the program create a config file at `~/.config/immersionpod/config`
 * `recent_threshold` - A file is considered recent if it has been modified in the last X days.
     Audio files that are no longer recent get archived if you call `impd archive`,
     and videos get skipped if you call `impd add_recent`.
+* `padding` - Set a pad to the dialog timings. For example, 0.5 = half a second.
 
 **Example config file:**
 
@@ -67,6 +68,7 @@ prefer_internal_subs=yes
 video_dir=~/Videos/ongoing
 bitrate=32k
 recent_threshold=10
+padding=0.2
 ```
 
 The config file is sourced so don't put stuff like `$ rm -rf ~/*` there, or it will bite you back.

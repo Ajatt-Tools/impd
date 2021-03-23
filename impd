@@ -30,6 +30,7 @@ load_default_config() {
 	video_dir=~/Videos/ongoing
 	bitrate=32k
 	recent_threshold=10
+	padding=0.2
 }
 
 ensure_dirs() {
@@ -232,7 +233,7 @@ to_srt() {
 }
 
 get_speech_fragments() {
-	awk -F' --> ' '
+	awk -F' --> ' -vPADDING=$padding '
 	function time_parts_to_seconds(hours, mins, secs) {
 		return hours * 3600.0 + mins * 60.0 + secs
 	}
@@ -258,6 +259,13 @@ get_speech_fragments() {
 			return var2
 		}
 	}
+	function apply_padding(timings) {
+		timings["start"] -= PADDING
+		timings["end"]   += PADDING
+		if (timings["start"] < 0) {
+			timings["start"] = 0
+		}
+	}
 	BEGIN {
 		prev["start"] = 0
 		prev["end"] = 0
@@ -267,9 +275,10 @@ get_speech_fragments() {
 		cur["end"]   = str_time_to_seconds($2)
 
 		if (cur["start"] == cur["end"]) {
-			// invalid subtitle
 			next
 		}
+
+		apply_padding(cur)
 
 		if (prev["start"] == 0 && prev["end"] == 0) {
 			prev["start"] = cur["start"]
@@ -286,7 +295,8 @@ get_speech_fragments() {
 		}
 	}
 	END {
-		print prev["start"]","prev["end"]
+		# last timing is not padded for safety reasons
+		print prev["start"]","prev["end"] - PADDING
 	}' "${1:?}"
 }
 
