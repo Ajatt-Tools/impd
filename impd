@@ -19,6 +19,7 @@
 # Any modifications to this file must keep this entire header intact.
 
 readonly program='immersionpod'
+readonly version=v0.1
 readonly current='current'
 readonly archive='archive'
 readonly config_filepath=${XDG_CONFIG_HOME:-$HOME/.config}/$program/config
@@ -537,7 +538,7 @@ echo_help() {
 
 version() {
 	cat <<-EOF
-		$(basename -- "$0") v0.1
+		$(basename -- "$0") $version
 		Copyright (C) $(date +%Y) Ren Tatsumoto.
 		License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
 		This is free software: you are free to change and redistribute it.
