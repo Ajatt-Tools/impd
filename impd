@@ -274,7 +274,7 @@ get_speech_fragments() {
 		cur["start"] = str_time_to_seconds($1)
 		cur["end"]   = str_time_to_seconds($2)
 
-		if (cur["start"] == cur["end"]) {
+		if (cur["start"] == cur["end"] || (cur["end"] - cur["start"]) > 30) {
 			next
 		}
 
