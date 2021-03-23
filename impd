@@ -487,7 +487,7 @@ reshuffle() {
 		return 1
 	fi
 	mpc update "$program/$current"
-	mpc crop
+	mpc crop || true
 	mpc add "$program/$current"
 	mpc shuffle
 	mpc play
