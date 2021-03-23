@@ -32,7 +32,7 @@ if it finds subtitles in the container or externally.
     ```
     $ git clone 'https://github.com/Ajatt-Tools/impd.git' ~/.local/share/impd
     ```
-3) Link the `impd` executable somewhere in your PATH
+3) Link the `impd` executable somewhere in your `PATH`
     ```
     $ ln -s ~/.local/share/impd/impd ~/.local/bin/impd
     ```
