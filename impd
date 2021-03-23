@@ -387,17 +387,18 @@ add_notify() {
 
 	if [[ $video == http*youtu*be* ]]; then
 		func=add_yt
-	elif [[ -f $video ]]; then
+	elif [[ -f $video ]] && [[ $video =~ \.(mkv|mp4)$ ]]; then
 		if [[ -z ${global_no_condense-} ]]; then
 			func=make_condensed
 		else
 			func=extract_audio
 		fi
 	else
-		echo "Error: '$video' doesn't exist." >&2
+		echo "Error: '$video' is not a mkv/mp4 file." >&2
+		return
 	fi
 
-	if "$func" "$video"; then
+	if "${func:?}" "$video"; then
 		notify_send "$msg"
 	fi
 }
