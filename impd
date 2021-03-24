@@ -215,7 +215,7 @@ find_external_subtitles() {
 	local -r video=${1:?}
 	local -r dir=$(dirname -- "$video")
 	local -r base=$(basename -- "${video%.*}")
-	find "$dir" \( -name "$base*.srt" -o -name "$base*.ass" \) | head -1
+	find "$dir" -maxdepth 5 -type f \( -name "$base*.srt" -o -name "$base*.ass" \) | head -1
 }
 
 to_srt() {
@@ -377,8 +377,7 @@ make_condensed() {
 		-i "$chunks_file" \
 		-c copy \
 		-metadata title="$(fetch_video_title "${video:?}")" \
-		"$condenced_audio"
-	then
+		"$condenced_audio"; then
 		rm -rf -- "$job_dir"
 		return
 	else
@@ -416,12 +415,19 @@ add_notify() {
 
 add() {
 	case ${1-} in
-		-r|--resent|recent) add_recent; return ;;
-		-s|--stdin|stdin) add_stdin; return;;
+		-r | --resent | recent)
+			add_recent
+			return
+			;;
+		-s | --stdin | stdin)
+			add_stdin
+			return
+			;;
 	esac
 	for arg; do
 		add_notify "$arg"
 	done
+	unset arg
 }
 
 add_stdin() {
@@ -566,7 +572,7 @@ main() {
 		case $arg in
 			-n | --no-condense) readonly global_no_condense='y' ;;
 			-f | --force) readonly global_overwrite='y' ;;
-			*) args+=("$arg")
+			*) args+=("$arg") ;;
 		esac
 	done
 	unset arg
