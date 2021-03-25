@@ -572,6 +572,7 @@ echo_help() {
 		Examples:
 		  $bn add -f 'video.mkv'
 		  $bn rotate
+		  find /mnt/videos/ | $bn add --stdin
 	EOF
 }
 
