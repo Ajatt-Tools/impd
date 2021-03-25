@@ -301,6 +301,38 @@ get_speech_fragments() {
 	}' "${1:?}"
 }
 
+fetch_video_subtitles() {
+	local -r video=${1:?}
+	local -r subs_ext=${2:-}
+	local -r subs_out=${3:?}
+
+	if [[ $prefer_internal_subs == 'yes' ]]; then
+		if [[ -f "$subs_out" ]] || extract_subtitles "$video" "$subs_out"; then
+			echo "Extracted internal subtitles."
+		else
+			echo "Failed to extract internal subtitles."
+			if [[ -f $subs_ext ]]; then
+				echo "External subtitle file '$(basename -- "$subs_ext")' will be used."
+				to_srt "$subs_ext" "$subs_out"
+			else
+				return 1
+			fi
+		fi
+	else
+		if [[ -f $subs_ext ]]; then
+			echo "External subtitle file '$(basename -- "$subs_ext")' will be used."
+			to_srt "$subs_ext" "$subs_out"
+		else
+			if [[ -f "$subs_out" ]] || extract_subtitles "$video" "$subs_out"; then
+				echo "Extracted internal subtitles."
+			else
+				echo "Failed to extract internal subtitles."
+				return 1
+			fi
+		fi
+	fi
+}
+
 make_condensed() {
 	local -r video=${1:?}
 	local -r base=$(basename -- "${video%.*}")
@@ -313,8 +345,8 @@ make_condensed() {
 	local -r chunks_dir=$(mktemp -d --tmpdir="$job_dir" -t "chunks-XXXX")
 	local -r chunks_file=$job_dir/chunks.list
 
-	local -r subtitles=$job_dir/$base.srt
-	local -r ext_subtitles=$(find_external_subtitles "$video")
+	local -r subs_out=$job_dir/$base.srt
+	local -r subs_ext=${3:-$(find_external_subtitles "$video")}
 
 	if [[ $condenced_audio != *.ogg ]]; then
 		echo "Error: filename should end with '.ogg'" >&2
@@ -330,39 +362,16 @@ make_condensed() {
 		extract_audio "$video" "$audio" || return 1
 	fi
 
-	if [[ $prefer_internal_subs == 'yes' ]]; then
-		if [[ -f "$subtitles" ]] || extract_subtitles "$video" "$subtitles"; then
-			echo "Extracted internal subtitles."
-		else
-			echo -n "Failed to extract internal subtitles. "
-			if [[ -f $ext_subtitles ]]; then
-				echo "External subtitle file '$(basename -- "$ext_subtitles")' will be used."
-				to_srt "$ext_subtitles" "$subtitles"
-			else
-				echo "File will be added without condensing."
-				mv "$audio" "$condenced_audio"
-				return
-			fi
-		fi
-	else
-		if [[ -f $ext_subtitles ]]; then
-			echo "External subtitle file '$(basename -- "$ext_subtitles")' will be used."
-			to_srt "$ext_subtitles" "$subtitles"
-		else
-			if [[ -f "$subtitles" ]] || extract_subtitles "$video" "$subtitles"; then
-				echo "Extracted internal subtitles."
-			else
-				echo "Failed to extract internal subtitles. File will be added without condensing."
-				mv "$audio" "$condenced_audio"
-				return
-			fi
-		fi
+	if ! fetch_video_subtitles "$video" "$subs_ext" "$subs_out"; then
+		echo "File '$(basename -- "$audio")' will be added without condensing."
+		mv "$audio" "$condenced_audio"
+		return
 	fi
 
 	local start end
 	while IFS=, read -r start end; do
 		make_chunk "$audio" "$chunks_dir/${base}_${start}.ogg" "$start" "$end"
-	done < <(get_speech_fragments "${subtitles:?}")
+	done < <(get_speech_fragments "${subs_out:?}")
 
 	find "$chunks_dir" -type f -name '*.ogg' | tac | sed "s/^/file '/g; s/$/'/g" >"$chunks_file"
 
