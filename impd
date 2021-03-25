@@ -333,21 +333,7 @@ fetch_video_subtitles() {
 	fi
 }
 
-make_condensed() {
-	local -r video=${1:?}
-	local -r base=$(basename -- "${video%.*}")
-
-	local -r job_dir=$(mktemp -d --tmpdir="$tmp_dir" -t "$base.job-XXXX")
-
-	local -r audio=$job_dir/$base.ogg
-	local -r condenced_audio=${2:-$immersionpod_dir/$current/$base.ogg}
-
-	local -r chunks_dir=$(mktemp -d --tmpdir="$job_dir" -t "chunks-XXXX")
-	local -r chunks_file=$job_dir/chunks.list
-
-	local -r subs_out=$job_dir/$base.srt
-	local -r subs_ext=${3:-$(find_external_subtitles "$video")}
-
+__make_condensed() {
 	if [[ $condenced_audio != *.ogg ]]; then
 		echo "Error: filename should end with '.ogg'" >&2
 		return 1
@@ -355,11 +341,11 @@ make_condensed() {
 
 	if [[ -f $condenced_audio ]] && [[ -z ${global_overwrite-} ]]; then
 		echo "Warning: $(basename -- "$condenced_audio") already exists. Doing nothing." >&2
-		return 2
+		return 1
 	fi
 
-	if [[ ! -f $audio ]]; then
-		extract_audio "$video" "$audio" || return 1
+	if [[ ! -f $audio ]] && ! extract_audio "$video" "$audio"; then
+		return 1
 	fi
 
 	if ! fetch_video_subtitles "$video" "$subs_ext" "$subs_out"; then
@@ -375,7 +361,7 @@ make_condensed() {
 
 	find "$chunks_dir" -type f -name '*.ogg' | tac | sed "s/^/file '/g; s/$/'/g" >"$chunks_file"
 
-	if ffmpeg -nostdin \
+	ffmpeg -nostdin \
 		-hide_banner \
 		-loglevel error \
 		-vn \
@@ -386,12 +372,29 @@ make_condensed() {
 		-i "$chunks_file" \
 		-c copy \
 		-metadata title="$(fetch_video_title "${video:?}")" \
-		"$condenced_audio"; then
-		rm -rf -- "$job_dir"
-		return
-	else
-		return 1
+		"$condenced_audio"
+}
+
+make_condensed() {
+	local -r video=${1:?}
+	local -r base=$(basename -- "${video%.*}")
+
+	local -r job_dir=$(mktemp -d --tmpdir="$tmp_dir" -t "$base.job-XXXX")
+
+	local -r audio=$job_dir/$base.ogg
+	local -r condenced_audio=${2:-$immersionpod_dir/$current/$base.ogg}
+
+	local -r chunks_dir=$(mktemp -d --tmpdir="$job_dir" -t "chunks-XXXX")
+	local -r chunks_file=$job_dir/chunks.list
+
+	local -r subs_out=$job_dir/$base.srt
+	local -r subs_ext=${3:-$(find_external_subtitles "$video")}
+
+	if __make_condensed; then
+		local -r result=0
 	fi
+	rm -rf -- "$job_dir"
+	return ${result-1}
 }
 
 condense() {
