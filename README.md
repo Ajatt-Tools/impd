@@ -90,6 +90,7 @@ the only command you are going to need is `impd rotate`.
     * `-r`, `--recent` - Add files modified in the last `recent_threshold` days
     from your video directory to Immersion pod.
     * `-s`, `--stdin` - Read filenames from stdin.
+* `condense -i video [-o audio] [-s subtitles]` - Make condensed audio and store it in an arbitrary location.
 * `archive` - Move episodes older than `recent_threshold` days to the archive folder.
 * `reshuffle` - Re-add files to the playlist, shuffle them and start playing.
 * `rotate` - Archive old immersion material and make new based on videos in your video directory.

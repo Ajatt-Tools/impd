@@ -394,6 +394,20 @@ make_condensed() {
 	fi
 }
 
+condense() {
+	while getopts 'i:s:o:' flag; do
+		case $flag in
+			i) local -r input=${OPTARG} ;;
+			s) local -r subtitles=${OPTARG} ;;
+			o) local -r output=${OPTARG} ;;
+			*) echo "Unknown argument." && exit 1 ;;
+		esac
+	done
+	unset flag
+
+	make_condensed "${input:?Input video file is not set.}" "${output-}" "${subtitles-}"
+}
+
 notify_send() {
 	local -r msg=${*:?}
 	command -v notify-send >/dev/null && notify-send "Immersion pod" "$msg"
@@ -535,11 +549,15 @@ echo_help() {
 
 		ACTION Commands:
 		  add [OPTION] FILE	Add files to Immersion pod.
-		  Options:
-		    -r, --recent	Add new files from your video directory to Immersion pod.
-		    -s, --stdin		Read filenames from stdin.
-
-		  archive		Move episodes older than $recent_threshold days to archive folder.
+		    Options:
+		      -r, --recent	Add new files from your video directory to Immersion pod.
+		      -s, --stdin	Read filenames from stdin.
+		  condense [OPTION]	Condense a video.
+		    Options:
+		      -i		Input file.
+		      -o		Output file.
+		      -s		Subtitle file.
+		  archive		Move episodes older than $recent_threshold days to the archive folder.
 		  reshuffle		Re-add files to the playlist, shuffle them and start playing.
 		  rotate		Short for add_recent, archive, reshuffle.
 		  probe [a|s] FILE	Print streams in FILE.
