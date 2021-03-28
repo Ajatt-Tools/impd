@@ -219,8 +219,8 @@ find_external_subtitles() {
 }
 
 to_srt() {
-	local -r input=${1:?}
-	local -r output=${2:?}
+	local -r input=${1:?Input file is not specified.}
+	local -r output=${2:?Output file is not specified.}
 
 	ffmpeg -nostdin \
 		-loglevel error \
