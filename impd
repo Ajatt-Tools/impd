@@ -532,7 +532,7 @@ get_mpd_dir() {
 	# shellcheck disable=SC2088
 	{
 		echo '~/music'
-		sed -n '/^music_directory/ {s/^music_directory[^"]*"\(.*\)"$/\1/p; q}' "$path"
+		sed -n '/^music_directory/ {s/^music_directory[[:space:]]*"\([^"]*\)".*$/\1/p; q}' "$path"
 	} | tail -1
 }
 
