@@ -573,6 +573,8 @@ echo_help() {
 		  $bn add -f 'video.mkv'
 		  $bn rotate
 		  find /mnt/videos/ | $bn add --stdin
+
+		To report bugs, see https://matrix.to/#/#djt:tchncs.de
 	EOF
 }
 
