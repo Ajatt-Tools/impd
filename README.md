@@ -63,6 +63,7 @@ To configure the program create a config file at `~/.config/immersionpod/config`
     Audio files that are no longer recent get archived if you call `impd archive`,
     and videos get skipped if you call `impd add_recent`.
 * `padding` - Set a pad to the dialog timings. For example, 0.5 = half a second.
+* `music_dir` - Custom music directory. Set it only when `impd` fails to automatically detect your music directory.
 
 **Example config file:**
 

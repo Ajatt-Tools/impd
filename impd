@@ -29,6 +29,7 @@ load_default_config() {
 	langs=jpn,eng,rus,ukr
 	prefer_internal_subs=yes
 	video_dir=~/Videos/ongoing
+	music_dir=""
 	bitrate=32k
 	recent_threshold=10
 	padding=0.2
@@ -532,7 +533,11 @@ get_mpd_dir() {
 	# shellcheck disable=SC2088
 	{
 		echo '~/music'
-		sed -n '/^music_directory/ {s/^music_directory[[:space:]]*"\([^"]*\)".*$/\1/p; q}' "$path"
+		if [[ -d $music_dir ]]; then
+			echo "$music_dir"
+		else
+			sed -n '/^music_directory/ {s/^music_directory[[:space:]]*"\([^"]*\)".*$/\1/p; q}' "$path" 2>/dev/null
+		fi
 	} | tail -1
 }
 
