@@ -128,7 +128,7 @@ extract_subtitles() {
 	local -r output=${2:?}
 	local -r track_num=$(best_track s "$input")
 
-	echo "Extracting track #$track_num (subtitles) from $(basename -- "$input")..."
+	echo "Extracting track #${track_num:-auto} (subtitles) from $(basename -- "$input")..."
 	ffmpeg -nostdin \
 		-loglevel error \
 		-hide_banner \
@@ -169,7 +169,7 @@ extract_audio() {
 		return 1
 	fi
 
-	echo "Extracting track #$track_num (audio) from $(basename -- "$input")..."
+	echo "Extracting track #${track_num:-auto} (audio) from $(basename -- "$input")..."
 	ffmpeg -nostdin \
 		-loglevel error \
 		-hide_banner \
