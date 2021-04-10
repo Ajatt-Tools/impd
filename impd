@@ -520,6 +520,10 @@ reshuffle() {
 		echo "Error: mpc is not installed." >&2
 		return 1
 	fi
+	if ! pgrep -x mpd >/dev/null; then
+		echo "Error: mpd is not running." >&2
+		return 1
+	fi
 	mpc update "$program/$current"
 	mpc crop || true
 	mpc add "$program/$current"
