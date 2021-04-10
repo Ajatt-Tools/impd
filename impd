@@ -82,6 +82,7 @@ best_track() {
 	local -r video=${2:?}
 	local -r tracks=$(probe_tracks "$track_type" "$video")
 
+	local lang track track_num track_lang
 	while IFS= read -r lang; do
 		while IFS= read -r track; do
 			track_num=$(cut -d, -f1 <<<"$track")
@@ -92,7 +93,6 @@ best_track() {
 			fi
 		done <<<"$tracks"
 	done <<<"${langs//,/$'\n'}"
-	unset lang track
 }
 
 find_recent_videos() {
