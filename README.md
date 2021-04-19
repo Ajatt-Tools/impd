@@ -43,7 +43,7 @@ AUR package and skip to [Configuration](#configuration).
 
 ## Configuration
 
-To configure the program create a config file at `~/.config/immersionpod/config`
+To configure the program create a config file at `~/.config/immersionpod/config`.
 
 **Available options:**
 
@@ -131,7 +131,7 @@ External subtitles should have the same names as the corresponding video files e
 
 If you want to discuss this program, have found a bug, or want to participate in the development,
 please join [our community](https://tatsumoto-ren.github.io/blog/join-our-community.html).
-I look forward suggestions and pull requests!
+I look forward to suggestions and pull requests!
 
 My special thanks to all my
 [Patreon](https://www.patreon.com/bePatron?u=43555128)

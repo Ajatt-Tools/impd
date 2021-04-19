@@ -583,7 +583,7 @@ echo_help() {
 		  $bn rotate
 		  find /mnt/videos/ | $bn add --stdin
 
-		To report bugs, see https://matrix.to/#/#djt:tchncs.de
+		To report bugs, see https://matrix.to/#/#djt:midov.pl
 	EOF
 }
 
