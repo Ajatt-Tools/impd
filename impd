@@ -213,10 +213,13 @@ make_chunk() {
 }
 
 find_external_subtitles() {
+	escape_square_brackets() {
+		sed 's|\[|\\\[|g; s|\]|\\\]|g'
+	}
 	local -r video=${1:?}
 	local -r dir=$(dirname -- "$video")
-	local -r base=$(basename -- "${video%.*}")
-	find "$dir" -maxdepth 5 -type f \( -name "$base*.srt" -o -name "$base*.ass" \) | head -1
+	local -r base=$(basename -- "${video%.*}" | escape_square_brackets)
+	find "$dir" -maxdepth 5 -type f \( -name "$base*.srt" -or -name "$base*.ass" \) | head -1
 }
 
 to_srt() {
