@@ -417,8 +417,10 @@ condense() {
 
 notify_send() {
 	local -r msg=${*:?}
-	command -v notify-send >/dev/null && notify-send "Immersion pod" "$msg"
 	echo "$msg"
+	if command -v notify-send >/dev/null; then
+		notify-send "Immersion pod" "$msg" &
+	fi
 }
 
 add_notify() {
