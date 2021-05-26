@@ -276,7 +276,7 @@ parse_speech_fragments() {
 	}
 	BEGIN {
 		prev["start"] = 0
-		prev["end"] = 0
+		prev["end"]   = 0
 	}
 	$0 ~ SRT_TIMING_PATTERN {
 		cur["start"] = str_time_to_seconds($1)
@@ -384,7 +384,7 @@ __make_condensed() {
 	local start end
 	while IFS=, read -r start end; do
 		make_chunk "$extracted_audio" "$chunks_dir/${base}_${start}.ogg" "$start" "$end"
-	done < <(< "${subs_out:?}" filter_non_speech_fragments | parse_speech_fragments)
+	done < <(filter_non_speech_fragments <"${subs_out:?}" | parse_speech_fragments)
 
 	find "$chunks_dir" -type f -name '*.ogg' | tac | sed "s/^/file '/g; s/$/'/g" >"$chunks_file"
 
