@@ -24,6 +24,7 @@ readonly current='current'
 readonly archive='archive'
 readonly config_filepath=${XDG_CONFIG_HOME:-$HOME/.config}/$program/config
 readonly tmp_dir="/tmp/$program"
+readonly srt_timing_pattern='^[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3} --> [0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}$'
 
 load_default_config() {
 	langs=jpn,eng,rus,ukr
@@ -33,6 +34,8 @@ load_default_config() {
 	bitrate=32k
 	recent_threshold=10
 	padding=0.2
+	use_skip_pattern=yes
+	skip_pattern="^♪〜$|^〜♪$"
 }
 
 ensure_dirs() {
@@ -237,8 +240,8 @@ to_srt() {
 		"$output"
 }
 
-get_speech_fragments() {
-	awk -F' --> ' -vPADDING=$padding '
+parse_speech_fragments() {
+	awk -F' --> ' -vPADDING="$padding" -vSRT_TIMING_PATTERN="$srt_timing_pattern" '
 	function time_parts_to_seconds(hours, mins, secs) {
 		return hours * 3600.0 + mins * 60.0 + secs
 	}
@@ -275,7 +278,7 @@ get_speech_fragments() {
 		prev["start"] = 0
 		prev["end"] = 0
 	}
-	/^[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3} --> [0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}$/ {
+	$0 ~ SRT_TIMING_PATTERN {
 		cur["start"] = str_time_to_seconds($1)
 		cur["end"]   = str_time_to_seconds($2)
 
@@ -291,18 +294,38 @@ get_speech_fragments() {
 		} else {
 			if (overlap(prev["start"], prev["end"], cur["start"], cur["end"]) > 0) {
 				prev["start"] = min(prev["start"], cur["start"])
-				prev["end"] = max(prev["end"], cur["end"])
+				prev["end"]   = max(prev["end"], cur["end"])
 			} else {
 				print prev["start"]","prev["end"]
 				prev["start"] = cur["start"]
-				prev["end"] = cur["end"]
+				prev["end"]   = cur["end"]
 			}
 		}
 	}
 	END {
 		# last timing is not padded for safety reasons
 		print prev["start"]","prev["end"] - PADDING
-	}' "${1:?}"
+	}'
+}
+
+filter_non_speech_fragments() {
+	if [[ $use_skip_pattern != yes ]]; then
+		cat -
+		return
+	fi
+
+	awk -vSKIP_PATTERN="$skip_pattern" -vSRT_TIMING_PATTERN="$srt_timing_pattern" '
+	$0 ~ SRT_TIMING_PATTERN {
+		timings[timings_len++] = $0
+	}
+	$0 ~ SKIP_PATTERN {
+		--timings_len
+	}
+	END {
+		for (i = 0; i < timings_len; i++) {
+			print timings[i]
+		}
+	}'
 }
 
 fetch_video_subtitles() {
@@ -348,20 +371,20 @@ __make_condensed() {
 		return 1
 	fi
 
-	if [[ ! -f $audio ]] && ! extract_audio "$video" "$audio"; then
+	if [[ ! -f $extracted_audio ]] && ! extract_audio "$video" "$extracted_audio"; then
 		return 1
 	fi
 
 	if ! fetch_video_subtitles "$video" "$subs_ext" "$subs_out"; then
-		echo "File '$(basename -- "$audio")' will be added without condensing."
-		mv "$audio" "$condenced_audio"
+		echo "File '$(basename -- "$extracted_audio")' will be added without condensing."
+		mv "$extracted_audio" "$condenced_audio"
 		return
 	fi
 
 	local start end
 	while IFS=, read -r start end; do
-		make_chunk "$audio" "$chunks_dir/${base}_${start}.ogg" "$start" "$end"
-	done < <(get_speech_fragments "${subs_out:?}")
+		make_chunk "$extracted_audio" "$chunks_dir/${base}_${start}.ogg" "$start" "$end"
+	done < <(< "${subs_out:?}" filter_non_speech_fragments | parse_speech_fragments)
 
 	find "$chunks_dir" -type f -name '*.ogg' | tac | sed "s/^/file '/g; s/$/'/g" >"$chunks_file"
 
@@ -385,7 +408,7 @@ make_condensed() {
 
 	local -r job_dir=$(mktemp -d --tmpdir="$tmp_dir" -t "$base.job-XXXX")
 
-	local -r audio=$job_dir/$base.ogg
+	local -r extracted_audio=$job_dir/$base.ogg
 	local -r condenced_audio=${2:-$immersionpod_dir/$current/$base.ogg}
 
 	local -r chunks_dir=$(mktemp -d --tmpdir="$job_dir" -t "chunks-XXXX")

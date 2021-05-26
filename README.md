@@ -64,6 +64,9 @@ To configure the program create a config file at `~/.config/immersionpod/config`
     and videos get skipped if you call `impd add_recent`.
 * `padding` - Set a pad to the dialog timings. For example, 0.5 = half a second.
 * `music_dir` - Custom music directory. Set it only when `impd` fails to automatically detect your music directory.
+* `use_skip_pattern` - Toggles the use of `skip_pattern`. `yes` or `no`.
+* `skip_pattern` - Skip subtitle lines matching this RegExp.
+Can be used to skip openings and endings by matching lines like `♪〜`.
 
 **Example config file:**
 
@@ -74,6 +77,8 @@ video_dir=~/Videos/ongoing
 bitrate=32k
 recent_threshold=10
 padding=0.2
+use_skip_pattern=yes
+skip_pattern="^♪〜$|^〜♪$"
 ```
 
 The config file is sourced so don't put stuff like `$ rm -rf ~/*` there, or it will bite you back.
