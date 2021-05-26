@@ -119,7 +119,7 @@ $ impd rotate
 
 Additionally, you can use `impd` to perform miscellaneous operations on media.
 
-* `to_srt file.ass file.srt` - Convert `file` to `srt`.
+* `sub_conv [ass|srt] file.ass file.srt` - Convert `file` to `ass` or `srt`.
 * `make_condensed video.mkv condensed.ogg` - Convert video to condensed audio.
 * `extract_audio video.mkv audio.ogg` - Extract audio from video without condensing.
 * `extract_subtitles video.mkv subtitles.srt` - Extract internal subtitles.

@@ -225,9 +225,15 @@ find_external_subtitles() {
 	find "$dir" -maxdepth 5 -type f \( -name "$base*.srt" -or -name "$base*.ass" \) | head -1
 }
 
-to_srt() {
-	local -r input=${1:?Input file is not specified.}
-	local -r output=${2:?Output file is not specified.}
+sub_conv() {
+	local -r format=${1:?Subtitle format is not specified.}
+	local -r input=${2:?Input file is not specified.}
+	local -r output=${3:?Output file is not specified.}
+
+	if [[ $output != *.$format ]]; then
+		echo "Output extension doesn't match specified output format."
+		return 1
+	fi
 
 	ffmpeg -nostdin \
 		-loglevel error \
@@ -236,7 +242,7 @@ to_srt() {
 		-vn \
 		-an \
 		-i "$input" \
-		-f srt \
+		-f "$format" \
 		"$output"
 }
 
@@ -340,7 +346,7 @@ fetch_video_subtitles() {
 			echo "Failed to extract internal subtitles."
 			if [[ -f $subs_ext ]]; then
 				echo "External subtitle file '$(basename -- "$subs_ext")' will be used."
-				to_srt "$subs_ext" "$subs_out"
+				sub_conv srt "$subs_ext" "$subs_out"
 			else
 				return 1
 			fi
@@ -348,7 +354,7 @@ fetch_video_subtitles() {
 	else
 		if [[ -f $subs_ext ]]; then
 			echo "External subtitle file '$(basename -- "$subs_ext")' will be used."
-			to_srt "$subs_ext" "$subs_out"
+			sub_conv srt "$subs_ext" "$subs_out"
 		else
 			if [[ -f "$subs_out" ]] || extract_subtitles "$video" "$subs_out"; then
 				echo "Extracted internal subtitles."
