@@ -188,9 +188,26 @@ extract_audio() {
 		-compression_level 10 \
 		-application voip \
 		-acodec libopus \
-		-metadata title="$title" \
 		"$output" &&
 		echo "$output has been written."
+}
+
+make_uncondensed() {
+	local -r input=${1:?}
+	local -r base=$(basename -- "${input%.*}")
+	local -r extracted_audio=$tmp_dir/$base.ogg
+	local -r output=$immersionpod_dir/$current/$base.ogg
+
+	if [[ -f "$output" ]] && [[ -z ${global_overwrite-} ]]; then
+		echo "Warning: $(basename -- "$output") already exists. Doing nothing." >&2
+		return 1
+	fi
+
+	if extract_audio "$input" "$extracted_audio" && add_metadata "$extracted_audio" "$output"; then
+		rm -f -- "$extracted_audio"
+	else
+		return 1
+	fi
 }
 
 make_chunk() {
@@ -461,7 +478,7 @@ add_notify() {
 		if [[ -z ${global_no_condense-} ]]; then
 			func=make_condensed
 		else
-			func=extract_audio
+			func=make_uncondensed
 		fi
 	else
 		echo "Error: '$video' is not a mkv/mp4 file." >&2
