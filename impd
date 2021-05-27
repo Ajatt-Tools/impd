@@ -110,7 +110,7 @@ find_outdated_audio() {
 	find "$immersionpod_dir/$current" -maxdepth 1 -type f -mtime "+$recent_threshold" -print0 || exit 2
 }
 
-fetch_video_title() {
+fetch_title() {
 	local -r input=${1:?Path to video file is not set.}
 	strip() {
 		sed -e 's/_/ /g' \
@@ -124,6 +124,20 @@ fetch_video_title() {
 		basename -- "${input%.*}"
 	}
 	print_name | strip
+}
+
+fetch_episode_number() {
+	local -r file=${1:?}
+	{
+		echo 01
+		sed \
+		-Ee 's/(\[|\()[^])]*(\]|\))//g' \
+		-Ee 's/[0-9]{3,4}[pP]//g' \
+		-Ee 's/(19|20)[0-9]{2}//g' \
+		-Ee 's/v[.0-9-]{1,4}//g' \
+		-e 's/_/ /g' <<< "${file%.*}" |
+		grep -Pio '(?<=[＃#. pe-])[[:digit:]]{1,3}\b'
+	} | tail -1
 }
 
 extract_subtitles() {
@@ -149,7 +163,6 @@ extract_subtitles() {
 extract_audio() {
 	local -r input=${1:?}
 	local -r output=${2:-$immersionpod_dir/$current/$(basename -- "${input%.*}").ogg}
-	local -r title=$(fetch_video_title "$input")
 	local -r track_num=$(best_track a "$input")
 
 	if [[ $output != *.ogg ]]; then
@@ -383,14 +396,34 @@ fetch_video_subtitles() {
 	fi
 }
 
+add_metadata() {
+	local -r input=${1:?}
+	local -r output=${2:?}
+
+	ffmpeg -nostdin \
+		-hide_banner \
+		-loglevel error \
+		-vn \
+		-sn \
+		"-${global_overwrite:-n}" \
+		-i "$input" \
+		-c copy \
+		-metadata title="$(fetch_title "${input:?}")" \
+		-metadata artist="impd" \
+		-metadata album="$(date '+%Y-%V')" \
+		-metadata year="$(date '+%Y')" \
+		-metadata track="$(fetch_episode_number "$input")" \
+		"$output"
+}
+
 __make_condensed() {
-	if [[ $condenced_audio != *.ogg ]]; then
+	if [[ $output != *.ogg ]]; then
 		echo "Error: filename should end with '.ogg'" >&2
 		return 1
 	fi
 
-	if [[ -f $condenced_audio ]] && [[ -z ${global_overwrite-} ]]; then
-		echo "Warning: $(basename -- "$condenced_audio") already exists. Doing nothing." >&2
+	if [[ -f $output ]] && [[ -z ${global_overwrite-} ]]; then
+		echo "Warning: $(basename -- "$output") already exists. Doing nothing." >&2
 		return 1
 	fi
 
@@ -400,7 +433,7 @@ __make_condensed() {
 
 	if ! fetch_video_subtitles "$video" "$subs_ext" "$subs_out"; then
 		echo "File '$(basename -- "$extracted_audio")' will be added without condensing."
-		mv "$extracted_audio" "$condenced_audio"
+		add_metadata "$extracted_audio" "$output"
 		return
 	fi
 
@@ -420,9 +453,11 @@ __make_condensed() {
 		-f concat \
 		-safe 0 \
 		-i "$chunks_file" \
+		-map_metadata -1 \
 		-c copy \
-		-metadata title="$(fetch_video_title "${video:?}")" \
 		"$condenced_audio"
+
+	add_metadata "$extracted_audio" "$output"
 }
 
 make_condensed() {
@@ -432,7 +467,8 @@ make_condensed() {
 	local -r job_dir=$(mktemp -d --tmpdir="$tmp_dir" -t "$base.job-XXXX")
 
 	local -r extracted_audio=$job_dir/$base.ogg
-	local -r condenced_audio=${2:-$immersionpod_dir/$current/$base.ogg}
+	local -r condenced_audio=$job_dir/${base}_condensed.ogg
+	local -r output=${2:-$immersionpod_dir/$current/$base.ogg}
 
 	local -r chunks_dir=$(mktemp -d --tmpdir="$job_dir" -t "chunks-XXXX")
 	local -r chunks_file=$job_dir/chunks.list
