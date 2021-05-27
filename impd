@@ -39,9 +39,9 @@ load_default_config() {
 }
 
 ensure_dirs() {
-	mkdir -p "$(dirname -- "${config_filepath:?}")"
-	mkdir -p "$immersionpod_dir"/{$current,$archive}
-	mkdir -p "$tmp_dir"
+	mkdir -p -- "$(dirname -- "${config_filepath:?}")" \
+		"$immersionpod_dir"/{$current,$archive} \
+		"$tmp_dir"
 }
 
 probe_tracks() {
