@@ -180,7 +180,7 @@ extract_audio() {
 		return 1
 	fi
 
-	if [[ -f "$output" ]] && [[ -z $global_overwrite ]]; then
+	if [[ -f "$output" ]] && [[ -z ${global_overwrite-} ]]; then
 		echo "Warning: $(basename -- "$output") already exists. Doing nothing." >&2
 		return 1
 	fi
