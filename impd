@@ -453,9 +453,9 @@ __make_condensed() {
 		-i "$chunks_file" \
 		-map_metadata -1 \
 		-c copy \
-		"$condenced_audio"
+		"$condensed_audio"
 
-	add_metadata "$extracted_audio" "$output"
+	add_metadata "$condensed_audio" "$output"
 }
 
 make_condensed() {
@@ -465,7 +465,7 @@ make_condensed() {
 	local -r job_dir=$(mktemp -d --tmpdir="$tmp_dir" -t "$base.job-XXXX")
 
 	local -r extracted_audio=$job_dir/$base.ogg
-	local -r condenced_audio=$job_dir/${base}_condensed.ogg
+	local -r condensed_audio=$job_dir/${base}_condensed.ogg
 	local -r output=${2:-$immersionpod_dir/$current/$base.ogg}
 
 	local -r chunks_dir=$(mktemp -d --tmpdir="$job_dir" -t "chunks-XXXX")
@@ -526,7 +526,7 @@ add_notify() {
 
 add() {
 	case ${1-} in
-		-r | --resent | recent)
+		-r | --recent | recent)
 			add_recent
 			return
 			;;
