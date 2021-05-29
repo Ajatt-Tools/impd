@@ -526,7 +526,7 @@ add_notify() {
 
 add() {
 	case ${1-} in
-		-r | --resent | recent)
+		-r | --recent | recent)
 			add_recent
 			return
 			;;
