@@ -352,9 +352,13 @@ filter_non_speech_fragments() {
 	awk -vSKIP_PATTERN="$skip_pattern" -vSRT_TIMING_PATTERN="$srt_timing_pattern" '
 	$0 ~ SRT_TIMING_PATTERN {
 		timings[timings_len++] = $0
+		skip = 0
 	}
 	$0 ~ SKIP_PATTERN {
-		--timings_len
+		if (skip == 0) {
+			skip = 1
+			--timings_len
+		}
 	}
 	END {
 		for (i = 0; i < timings_len; i++) {
