@@ -230,7 +230,7 @@ make_chunk() {
 	local -r start=${3:?}
 	local -r end=${4:?}
 
-	echo "$start,$end"
+	echo "Processing chunk from $start to $end..."
 
 	ffmpeg -nostdin \
 		-loglevel error \
