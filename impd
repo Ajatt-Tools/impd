@@ -438,7 +438,7 @@ __make_condensed() {
 
 	local start end
 	while IFS=, read -r start end; do
-		make_chunk "$extracted_audio" "$chunks_dir/${base}_${start}.ogg" "$start" "$end"
+		make_chunk "$extracted_audio" "$chunks_dir/${base}_${start}-${end}.ogg" "$start" "$end"
 	done < <(filter_non_speech_fragments <"${subs_out:?}" | parse_speech_fragments)
 
 	find "$chunks_dir" -type f -name '*.ogg' | tac | sed "s/^/file '/g; s/$/'/g" >"$chunks_file"
