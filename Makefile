@@ -1,4 +1,4 @@
-VERSION ?= 0.1
+VERSION ?= 0.3
 PROG = impd
 PROG_TEMP = $(PROG).tmp
 
