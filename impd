@@ -115,7 +115,6 @@ fetch_title() {
 	strip() {
 		sed -e 's/_/ /g' \
 			-e 's/fansub\|vostfr\|10bits\|BluRay\|x26[45]\|AAC\|flac//gi' \
-			-e 's/condensed$//g' \
 			-Ee 's/[0-9]{3,4}[pP]//g' \
 			-Ee 's/(\[|\()[^])]*(\]|\))//g' \
 			-e 's/^ *//; s/ *$//' \
@@ -209,7 +208,7 @@ extract_audio() {
 make_uncondensed() {
 	local -r input=${1:?}
 	local -r base=$(basename -- "${input%.*}")
-	local -r extracted_audio=$tmp_dir/$base.ogg
+	local -r temp_audio=$tmp_dir/$base.ogg
 	local -r output=$immersionpod_dir/$current/$base.ogg
 
 	if [[ -f "$output" ]] && [[ -z ${global_overwrite-} ]]; then
@@ -217,8 +216,8 @@ make_uncondensed() {
 		return 1
 	fi
 
-	if extract_audio "$input" "$extracted_audio" && add_metadata "$extracted_audio" "$output"; then
-		rm -f -- "$extracted_audio"
+	if extract_audio "$input" "$temp_audio" && add_metadata "$temp_audio" "$output"; then
+		rm -f -- "$temp_audio"
 	else
 		return 1
 	fi
@@ -411,7 +410,7 @@ add_metadata() {
 		"-${global_overwrite:-n}" \
 		-i "$input" \
 		-c copy \
-		-metadata title="$(fetch_title "${input:?}")" \
+		-metadata title="$(fetch_title "$input")" \
 		-metadata artist="impd" \
 		-metadata album="$(date '+%Y-%V')" \
 		-metadata year="$(date '+%Y')" \
@@ -430,19 +429,19 @@ __make_condensed() {
 		return 1
 	fi
 
-	if [[ ! -f $extracted_audio ]] && ! extract_audio "$video" "$extracted_audio"; then
+	if [[ ! -f $temp_audio ]] && ! extract_audio "$video" "$temp_audio"; then
 		return 1
 	fi
 
 	if ! fetch_video_subtitles "$video" "$subs_ext" "$subs_out"; then
-		echo "File '$(basename -- "$extracted_audio")' will be added without condensing."
-		add_metadata "$extracted_audio" "$output"
+		echo "File '$(basename -- "$temp_audio")' will be added without condensing."
+		add_metadata "$temp_audio" "$output"
 		return
 	fi
 
 	local start end
 	while IFS=, read -r start end; do
-		make_chunk "$extracted_audio" "$chunks_dir/${base}_${start}-${end}.ogg" "$start" "$end"
+		make_chunk "$temp_audio" "$chunks_dir/${base}_${start}-${end}.ogg" "$start" "$end"
 	done < <(filter_non_speech_fragments <"${subs_out:?}" | parse_speech_fragments)
 
 	find "$chunks_dir" -type f -name '*.ogg' | tac | sed "s/^/file '/g; s/$/'/g" >"$chunks_file"
@@ -458,9 +457,9 @@ __make_condensed() {
 		-i "$chunks_file" \
 		-map_metadata -1 \
 		-c copy \
-		"$condensed_audio"
+		"$temp_audio"
 
-	add_metadata "$condensed_audio" "$output"
+	add_metadata "$temp_audio" "$output"
 }
 
 make_condensed() {
@@ -469,8 +468,7 @@ make_condensed() {
 
 	local -r job_dir=$(mktemp -d --tmpdir="$tmp_dir" -t "$base.job-XXXX")
 
-	local -r extracted_audio=$job_dir/$base.ogg
-	local -r condensed_audio=$job_dir/${base}_condensed.ogg
+	local -r temp_audio=$job_dir/$base.ogg
 	local -r output=${2:-$immersionpod_dir/$current/$base.ogg}
 
 	local -r chunks_dir=$(mktemp -d --tmpdir="$job_dir" -t "chunks-XXXX")
