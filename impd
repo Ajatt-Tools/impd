@@ -418,7 +418,7 @@ add_metadata() {
 		-metadata title="$(fetch_title "$input")" \
 		-metadata artist="impd" \
 		-metadata album="$(date '+%Y-%V')" \
-		-metadata year="$(date '+%Y')" \
+		-metadata date="$(date '+%Y')" \
 		-metadata track="$(fetch_episode_number "$input")" \
 		"$output"
 }
