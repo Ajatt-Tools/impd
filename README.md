@@ -121,7 +121,6 @@ $ impd rotate
 Additionally, you can use `impd` to perform miscellaneous operations on media.
 
 * `sub_conv [ass|srt] file.ass file.srt` - Convert `file` to `ass` or `srt`.
-* `make_condensed video.mkv condensed.ogg` - Convert video to condensed audio.
 * `extract_audio video.mkv audio.ogg` - Extract audio from video without condensing.
 * `extract_subtitles video.mkv subtitles.srt` - Extract internal subtitles.
 * `probe [a|s] video.mkv` - Print tracks available in the container.
