@@ -234,8 +234,6 @@ make_chunk() {
 	local -r start=${3:?}
 	local -r end=${4:?}
 
-	echo "Processing chunk from $start to $end..."
-
 	ffmpeg -nostdin \
 		-loglevel error \
 		-hide_banner \
@@ -440,6 +438,7 @@ __make_condensed() {
 
 	local start end
 	while IFS=, read -r start end; do
+		echo "Processing chunk from $start to $end..."
 		make_chunk "$temp_audio" "$chunks_dir/${base}_${start}-${end}.ogg" "$start" "$end"
 	done < <(filter_non_speech_fragments <"${subs_out:?}" | parse_speech_fragments)
 
