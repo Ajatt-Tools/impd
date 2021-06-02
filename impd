@@ -451,7 +451,7 @@ __make_condensed() {
 		-loglevel error \
 		-vn \
 		-sn \
-		"-${global_overwrite:-n}" \
+		-y \
 		-f concat \
 		-safe 0 \
 		-i "$chunks_file" \
