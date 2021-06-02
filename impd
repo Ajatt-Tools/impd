@@ -462,7 +462,7 @@ __make_condensed() {
 
 make_condensed() {
 	local -r video=${1:?}
-	local -r base=$(basename -- "${video%.*}")
+	local -r base=$(basename -- "${video%.*}" | tr -d \')
 
 	local -r job_dir=$(mktemp -d --tmpdir="$tmp_dir" -t "$base.job-XXXX")
 
