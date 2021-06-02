@@ -160,28 +160,34 @@ extract_subtitles() {
 		echo "$output has been written."
 }
 
-extract_audio() {
-	local -r input=${1:?}
-	local -r output=${2:-$immersionpod_dir/$current/$(basename -- "${input%.*}").ogg}
-	local -r track_num=$(best_track a "$input")
-
+check_output() {
 	if [[ $output != *.ogg ]]; then
 		echo "Error: filename should end with '.ogg'" >&2
 		return 1
 	fi
 
-	if [[ ! -r "$input" ]]; then
-		echo "Error: Can't read file $input." >&2
+	if [[ -f $output ]] && [[ -z ${global_overwrite-} ]]; then
+		echo "Warning: $(basename -- "$output") already exists. Doing nothing." >&2
 		return 1
 	fi
 
-	if [[ ! -w "$(dirname -- "$output")" ]]; then
+	if [[ ! -w $(dirname -- "$output") ]]; then
 		echo "Error: Can't write file $output." >&2
 		return 1
 	fi
+}
 
-	if [[ -f "$output" ]] && [[ -z ${global_overwrite-} ]]; then
-		echo "Warning: $(basename -- "$output") already exists. Doing nothing." >&2
+extract_audio() {
+	local -r input=${1:?}
+	local -r output=${2:-$immersionpod_dir/$current/$(basename -- "${input%.*}").ogg}
+	local -r track_num=$(best_track a "$input")
+
+	if ! check_output; then
+		return 1
+	fi
+
+	if [[ ! -r $input ]]; then
+		echo "Error: Can't read file $input." >&2
 		return 1
 	fi
 
@@ -211,8 +217,7 @@ make_uncondensed() {
 	local -r temp_audio=$tmp_dir/$base.ogg
 	local -r output=$immersionpod_dir/$current/$base.ogg
 
-	if [[ -f "$output" ]] && [[ -z ${global_overwrite-} ]]; then
-		echo "Warning: $(basename -- "$output") already exists. Doing nothing." >&2
+	if ! check_output; then
 		return 1
 	fi
 
@@ -419,13 +424,7 @@ add_metadata() {
 }
 
 __make_condensed() {
-	if [[ $output != *.ogg ]]; then
-		echo "Error: filename should end with '.ogg'" >&2
-		return 1
-	fi
-
-	if [[ -f $output ]] && [[ -z ${global_overwrite-} ]]; then
-		echo "Warning: $(basename -- "$output") already exists. Doing nothing." >&2
+	if ! check_output; then
 		return 1
 	fi
 
