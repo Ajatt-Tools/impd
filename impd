@@ -59,12 +59,33 @@ probe_tracks() {
 		return 1
 	fi
 
+	# Note: ffmpeg doesn't honor the order of specification of the local section entries in the output.
+	# This may cause breakage when impd is used to extract audio from certain containers.
+	# Because of that there's a need to "sort" the entries with awk.
+
 	ffprobe \
 		-loglevel error \
 		-select_streams "$track_type" \
-		-show_entries stream=index:stream_tags=language,title \
-		-print_format csv=print_section=0 \
-		"$video_fp"
+		-show_entries stream_tags=language,title:stream=index \
+		-print_format default \
+		"$video_fp" | awk -F= -vIGNORECASE=1 '
+	$0 == "[STREAM]" {
+		track_index = "auto"
+		track_lang  = "unknown"
+		track_title = "unknown"
+	}
+	$1 == "index" {
+		track_index = $2
+	}
+	$1 == "TAG:title" {
+		track_title = $2
+	}
+	$1 == "TAG:language" {
+		track_lang = $2
+	}
+	$0 == "[/STREAM]" {
+		print track_index "," track_lang "," track_title
+	}'
 }
 
 probe() {
