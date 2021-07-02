@@ -39,7 +39,8 @@ load_default_config() {
 }
 
 ensure_dirs() {
-	mkdir -p -- "$(dirname -- "${config_filepath:?}")" \
+	mkdir -p -- \
+		"$(dirname -- "${config_filepath:?}")" \
 		"$immersionpod_dir"/{$current,$archive} \
 		"$tmp_dir"
 }
