@@ -105,13 +105,11 @@ probe() {
 best_track() {
 	local -r track_type=${1:?}
 	local -r video=${2:?}
-	local -r tracks=$(probe_tracks "$track_type" "$video")
+	local -r tracks=$(probe_tracks "$track_type" "$video" | cut -d, -f1,2)
 
-	local lang track track_num track_lang
+	local lang track_num track_lang
 	while IFS= read -r lang; do
-		while IFS= read -r track; do
-			track_num=$(cut -d, -f1 <<<"$track")
-			track_lang=$(cut -d, -f2 <<<"$track")
+		while IFS=, read -r track_num track_lang; do
 			if [[ $lang == "$track_lang" ]]; then
 				echo "$track_num"
 				return
