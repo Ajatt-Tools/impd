@@ -89,17 +89,24 @@ probe_tracks() {
 }
 
 probe() {
-	if [[ ${1-} =~ ^(a|s)$ ]]; then
-		probe_tracks "$@"
-		return
+	if [[ ${1-} == a ]]; then
+		local -r requested_types="a,Audio"
+		shift
+	elif [[ ${1-} == s ]]; then
+		local -r requested_types="s,Subtitles"
+		shift
+	else
+		local -r requested_types=$'a,Audio\ns,Subtitles'
 	fi
 	local -r video_fp=${1:?Video filepath is not set.}
-
-	echo "Audio tracks:"
-	probe_tracks a "$video_fp"
-	echo
-	echo "Subtitle tracks:"
-	probe_tracks s "$video_fp"
+	local type title
+	while IFS=, read -r type title; do
+		echo "=== $title tracks ==="
+		{
+			echo "Index,Language,Title"
+			probe_tracks "$type" "$video_fp"
+		} | column -s ',' -t
+	done <<<"$requested_types"
 }
 
 best_track() {
