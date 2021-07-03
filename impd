@@ -512,14 +512,19 @@ make_condensed() {
 condense() {
 	while getopts 'i:s:o:' flag; do
 		case $flag in
-			i) local -r input=${OPTARG} ;;
-			s) local -r subtitles=${OPTARG} ;;
-			o) local -r output=${OPTARG} ;;
-			*) echo "Unknown argument." && exit 1 ;;
+			i)
+				local -r input=${OPTARG} ;;
+			s)
+				local -r subtitles=${OPTARG}
+				prefer_internal_subs=no
+				;;
+			o)
+				local -r output=${OPTARG} ;;
+			*)
+				echo "Unknown argument." && exit 1 ;;
 		esac
 	done
 	unset flag
-
 	make_condensed "${input:?Input video file is not set.}" "${output-}" "${subtitles-}"
 }
 
