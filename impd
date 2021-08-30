@@ -36,6 +36,7 @@ load_default_config() {
 	padding=0.2
 	use_skip_pattern=yes
 	skip_pattern="^♪〜$|^〜♪$|^・～$"
+	filename_pattern="[^(NCOP|NCED)]"
 }
 
 ensure_dirs() {
@@ -581,7 +582,9 @@ add_stdin() {
 		local -r sep=$'\n'
 	fi
 	while IFS= read -r -d "$sep" video; do
-		add_notify "$video"
+		if grep -Pq "$filename_pattern" <<< "$video"; then
+			add_notify "$video"
+		fi
 	done
 }
 

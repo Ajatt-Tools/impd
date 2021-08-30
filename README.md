@@ -68,6 +68,9 @@ To configure the program create a config file at `~/.config/immersionpod/config`
 * `use_skip_pattern` - Toggles the use of `skip_pattern`. `yes` or `no`.
 * `skip_pattern` - Skip subtitle lines matching this RegExp.
 Can be used to skip openings and endings by matching lines like `♪〜`.
+* `filename_pattern` - Perl regex to match the filename of the input file.
+If it doesn't match, `impd` skips the file.
+By default, it is set to skip filenames that contain `NCOP` or `NCED`.
 
 **Example config file:**
 
@@ -80,6 +83,7 @@ recent_threshold=10
 padding=0.2
 use_skip_pattern=yes
 skip_pattern="^♪〜$|^〜♪$"
+filename_pattern="[^(NCOP|NCED)]"
 ```
 
 The config file is sourced so don't put stuff like `$ rm -rf ~/*` there, or it will bite you back.
