@@ -368,8 +368,7 @@ parse_speech_fragments() {
 		}
 	}
 	END {
-		# last timing is not padded for safety reasons
-		print prev["start"]","prev["end"] - PADDING
+		print prev["start"]","prev["end"]
 	}'
 }
 
@@ -620,8 +619,8 @@ archive() {
 
 	# if there are old episodes, crate a dir for them and then move them
 	if [[ ${#old_episodes[@]} -gt 0 ]]; then
-		mkdir -pv "$archive_fol"
-		mv -v "${old_episodes[@]}" "$archive_fol"
+		mkdir -pv -- "$archive_fol"
+		mv -v -- "${old_episodes[@]}" "$archive_fol"
 		local -r msg="Archived ${#old_episodes[@]} episodes."
 	else
 		local -r msg="Nothing to archive."
@@ -711,7 +710,7 @@ echo_help() {
 version() {
 	cat <<-EOF
 		$(basename -- "$0") $version
-		Copyright (C) $(date +%Y) Ren Tatsumoto.
+		Copyright (C) 2021 Ren Tatsumoto.
 		License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
 		This is free software: you are free to change and redistribute it.
 		There is NO WARRANTY, to the extent permitted by law.
