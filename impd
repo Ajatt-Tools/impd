@@ -513,15 +513,18 @@ condense() {
 	while getopts 'i:s:o:' flag; do
 		case $flag in
 			i)
-				local -r input=${OPTARG} ;;
+				local -r input=${OPTARG}
+				;;
 			s)
 				local -r subtitles=${OPTARG}
 				prefer_internal_subs=no
 				;;
 			o)
-				local -r output=${OPTARG} ;;
+				local -r output=${OPTARG}
+				;;
 			*)
-				echo "Unknown argument." && exit 1 ;;
+				echo "Unknown argument." && exit 1
+				;;
 		esac
 	done
 	unset flag
@@ -581,7 +584,7 @@ add_stdin() {
 		local -r sep=$'\n'
 	fi
 	while IFS= read -r -d "$sep" video; do
-		if grep -Pq "$filename_pattern" <<< "$video"; then
+		if grep -Pq "$filename_pattern" <<<"$video"; then
 			add_notify "$video"
 		fi
 	done
