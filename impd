@@ -539,24 +539,50 @@ notify_send() {
 	fi
 }
 
-add_notify() {
-	local -r video=${1:?}
+add_audio() {
+	local -r source_file=${1:?}
 
-	if [[ $video == http*youtu*be* ]]; then
-		func=add_yt
-	elif [[ -f $video ]] && [[ $video =~ \.(mkv|mp4)$ ]]; then
+	if [[ -f $source_file ]]; then
+		cp -- "$source_file" "$immersionpod_dir/$current/"
+	elif [[ $source_file == http* ]]; then
+		(cd -- "$immersionpod_dir/$current/" && curl "$source_file" -L -O)
+	fi
+}
+
+add_video() {
+	local -r source_file=${1:?}
+
+	if [[ -f $source_file ]]; then
 		if [[ -z ${global_no_condense-} ]]; then
-			func=make_condensed
+			make_condensed "$source_file"
 		else
-			func=make_uncondensed
+			make_uncondensed "$source_file"
 		fi
-	else
-		echo "Error: '$video' is not a mkv/mp4 file." >&2
+	fi
+}
+
+add_notify() {
+	local -r source_file=${1:?}
+
+	case $source_file in
+		http*youtu*be*)
+			local -r func=add_yt
+			;;
+		*.mp3 | *.ogg | *.wav | *.m4a)
+			local -r func=add_audio
+			;;
+		*.mkv | *.mp4 | *.avi)
+			local -r func=add_video
+			;;
+	esac
+
+	if [[ -z $func ]]; then
+		echo "Error: '$source_file' is not a supported file type." >&2
 		return
 	fi
 
-	if "${func:?}" "$video"; then
-		notify_send "$(basename -- "$video") has been added."
+	if "${func:?}" "$source_file"; then
+		notify_send "$(basename -- "$source_file") has been added."
 	fi
 }
 
