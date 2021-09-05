@@ -463,13 +463,13 @@ __make_condensed() {
 		return
 	fi
 
-	local start end
+	local start end chunk_path
 	while IFS=, read -r start end; do
-		echo "Processing chunk from $start to $end..."
-		make_chunk "$temp_audio" "$chunks_dir/${base}_${start}-${end}.ogg" "$start" "$end"
-	done < <(filter_non_speech_fragments <"${subs_out:?}" | parse_speech_fragments)
-
-	find "$chunks_dir" -type f -name '*.ogg' | tac | sed "s/^/file '/g; s/$/'/g" >"$chunks_file"
+		echo "Processing chunk from $start to $end..." >&3
+		chunk_path=$chunks_dir/${base}_${start}-${end}.ogg
+		make_chunk "$temp_audio" "$chunk_path" "$start" "$end"
+		if [[ -f $chunk_path ]]; then echo "file '$chunk_path'"; fi
+	done < <(filter_non_speech_fragments <"${subs_out:?}" | parse_speech_fragments) 3>&1 >"$chunks_file"
 
 	ffmpeg -nostdin \
 		-hide_banner \
