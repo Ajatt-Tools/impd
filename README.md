@@ -114,23 +114,99 @@ the only command you are going to need is `impd rotate`.
 * `-f`, `--force` - Overwrite existing files.
 * `-n`, `--no-condense` - Don't condense audio.
 
-**Examples:**
+## Examples
+
+Add an arbitrary video to Immersion pod. Condense if possible.
 
 ```
 $ impd add -f 'video.mkv'
+```
+
+Add all recently downloaded videos to Immersion pod. Condense if possible.
+
+```
 $ impd add --recent
+```
+
+Use the `find` utility to search for specific videos.
+Pipe the output to `impd`.
+
+```
 $ find /mnt/videos/ | impd add --stdin
+```
+
+Rotate.
+Archive old episodes and add newly downloaded ones.
+
+```
 $ impd rotate
 ```
 
 **Tip:** Add `impd rotate` as a cronjob or bind it to any key in your DE, WM, sxhkd, xbindkeysrc, etc.
 
-Additionally, you can use `impd` to perform miscellaneous operations on media.
+## Miscellaneous
 
-* `sub_conv [ass|srt] file.ass file.srt` - Convert `file` to `ass` or `srt`.
-* `extract_audio video.mkv audio.ogg` - Extract audio from video without condensing.
-* `extract_subtitles video.mkv subtitles.srt` - Extract internal subtitles.
-* `probe [a|s] video.mkv` - Print tracks available in the container.
+Convert `file` to `ass` or `srt`.
+
+```
+$ impd sub_conv ass file.srt file.ass
+$ impd sub_conv srt file.ass file.srt
+```
+
+Extract audio from video without condensing.
+
+```
+$ impd extract_audio 'video.mkv' audio.ogg
+```
+
+Extract internal subtitles.
+Format is guessed based on extension.
+
+```
+$ impd extract_subtitles 'video.mkv' subtitles.srt
+$ impd extract_subtitles 'video.mkv' subtitles.ass
+```
+
+Extract subtitles from all videos in a folder.
+
+```
+for video in ./*.mkv; do
+    impd extract_subtitles "$video" "${video%.*}.ass"
+done
+```
+
+Print tracks available in the container.
+`a` for audio, `s` for subtitles.
+
+```
+$ impd probe a 'video.mkv'
+$ impd probe s 'video.mkv'
+```
+
+Add an arbitrary audio to Immersion pod.
+Files are copied or downloaded as is.
+
+```
+$ impd add ~/podcast.mp3
+$ impd add 'https://podcasts.com/podcast.mp3'
+```
+
+Download and automatically add podcasts or YouTube videos to Immersion pod.
+
+If you use
+[Newsboat](https://wiki.archlinux.org/title/Newsboat),
+you can define a macro to add a video or audio to Immersion pod.
+Install
+[tsp](https://aur.archlinux.org/packages/task-spooler/),
+then open your `~/.config/newsboat/config` and add the macro:
+
+```
+browser firefox
+macro i set browser "tsp impd add" ; open-in-browser ; set browser firefox -- "Add to Immersion pod"
+```
+
+Next time you open Newsboat,
+you'll be able to press the macro-prefix (usually `,`) followed by `i` to call `impd add`.
 
 ## Condensing
 
