@@ -285,12 +285,16 @@ find_external_subtitles() {
 }
 
 sub_conv() {
-	local -r format=${1:?Subtitle format is not specified.}
-	local -r input=${2:?Input file is not specified.}
-	local -r output=${3:?Output file is not specified.}
+	local -r input=${1:?Input file is not specified.}
+	local -r output=${2:?Output file is not specified.}
 
-	if [[ $output != *.$format ]]; then
-		echo "Output extension doesn't match specified output format."
+	if [[ $output == "$input" ]]; then
+		echo "Input and output can't be the same file."
+		return 1
+	fi
+
+	if [[ $output != *.ass ]] && [[ $output != *.srt ]]; then
+		echo "Please specify ass or srt as the output extension."
 		return 1
 	fi
 
@@ -301,7 +305,7 @@ sub_conv() {
 		-vn \
 		-an \
 		-i "$input" \
-		-f "$format" \
+		-f "${output##*.}" \
 		"$output"
 }
 
@@ -408,7 +412,7 @@ fetch_video_subtitles() {
 			echo "Failed to extract internal subtitles."
 			if [[ -f $subs_ext ]]; then
 				echo "External subtitle file '$(basename -- "$subs_ext")' will be used."
-				sub_conv srt "$subs_ext" "$subs_out"
+				sub_conv "$subs_ext" "$subs_out"
 			else
 				return 1
 			fi
@@ -416,7 +420,7 @@ fetch_video_subtitles() {
 	else
 		if [[ -f $subs_ext ]]; then
 			echo "External subtitle file '$(basename -- "$subs_ext")' will be used."
-			sub_conv srt "$subs_ext" "$subs_out"
+			sub_conv "$subs_ext" "$subs_out"
 		else
 			if [[ -f "$subs_out" ]] || extract_subtitles "$video" "$subs_out"; then
 				echo "Extracted internal subtitles."

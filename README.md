@@ -149,8 +149,8 @@ $ impd rotate
 Convert `file` to `ass` or `srt`.
 
 ```
-$ impd sub_conv ass file.srt file.ass
-$ impd sub_conv srt file.ass file.srt
+$ impd sub_conv file.srt file.ass
+$ impd sub_conv file.ass file.srt
 ```
 
 Extract audio from video without condensing.
