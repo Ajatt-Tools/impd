@@ -753,13 +753,13 @@ version() {
 main() {
 	# Load default configuration, then override settings with the config file
 	load_default_config
-	set_impd_dir
-	ensure_dirs
-
 	# shellcheck source=/dev/null
 	if [[ -f ${config_filepath:?} ]]; then
 		source "$config_filepath"
 	fi
+
+	set_impd_dir
+	ensure_dirs
 
 	# Process global arguments
 	local args=()
