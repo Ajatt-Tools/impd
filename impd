@@ -580,7 +580,7 @@ add_notify() {
 			;;
 	esac
 
-	if [[ -z $func ]]; then
+	if [[ -z ${func-} ]]; then
 		echo "Error: '$source_file' is not a supported file type." >&2
 		return
 	fi
