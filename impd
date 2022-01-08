@@ -514,6 +514,10 @@ make_condensed() {
 }
 
 condense() {
+	if [[ -z $* ]]; then
+		echo "Usage: condense -i [INPUT] -s [SUBTITLES] -o [OUTPUT]"
+		return 1
+	fi
 	while getopts 'i:s:o:' flag; do
 		case $flag in
 			i)
