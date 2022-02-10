@@ -182,7 +182,7 @@ extract_subtitles() {
 		-an \
 		-i "$input" \
 		-map_metadata -1 \
-		-map "0:${track_num:-s}" \
+		-map "0:${track_num:-s:0}" \
 		-f "${output##*.}" \
 		"$output" &&
 		echo "$output has been written."
@@ -228,7 +228,7 @@ extract_audio() {
 		-sn \
 		-i "$input" \
 		-map_metadata -1 \
-		-map "0:${track_num:-a}" \
+		-map "0:${track_num:-a:0}" \
 		-ac 2 \
 		-ab "$bitrate" \
 		-vbr on \
