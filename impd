@@ -579,7 +579,7 @@ add_notify() {
 		*.mp3 | *.ogg | *.wav | *.m4a)
 			local -r func=add_audio
 			;;
-		*.mkv | *.mp4 | *.avi)
+		*.mkv | *.mp4 | *.avi | *.flv)
 			local -r func=add_video
 			;;
 	esac
@@ -604,6 +604,9 @@ add() {
 			add_stdin
 			return
 			;;
+		"")
+			echo "You haven't told me what to add."
+			return
 	esac
 	for arg; do
 		add_notify "$arg"
