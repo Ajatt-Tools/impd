@@ -632,19 +632,22 @@ add_recent() {
 }
 
 add_yt() {
-	if command -v youtube-dl >/dev/null; then
-		youtube-dl \
-			--ignore-errors \
-			--extract-audio \
-			--add-metadata \
-			--continue \
-			--no-mtime \
-			-f bestaudio/best \
-			-o "$immersionpod_dir/$current/%(uploader)s%(title)s.%(ext)s" \
-			"${*:?}"
-	else
-		echo "Error: 'youtube-dl' is not installed." >&2
+	local -r _ytdl=$(command -v yt-dlp || command -v youtube-dl)
+
+	if [[ -z $_ytdl ]]; then
+		echo "Error: 'youtube-dl' or 'yt-dlp' is not installed." >&2
+		return 1
 	fi
+
+	"$_ytdl" \
+		--ignore-errors \
+		--extract-audio \
+		--add-metadata \
+		--continue \
+		--no-mtime \
+		-f bestaudio/best \
+		-o "$immersionpod_dir/$current/%(uploader)s%(title)s.%(ext)s" \
+		"${*:?}"
 }
 
 archive() {
