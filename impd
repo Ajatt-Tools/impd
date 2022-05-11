@@ -576,7 +576,7 @@ add_notify() {
 		http*youtu*be*)
 			local -r func=add_yt
 			;;
-		*.mp3 | *.ogg | *.wav | *.m4a)
+		*.mp3 | *.ogg | *.wav | *.m4a | *.wma)
 			local -r func=add_audio
 			;;
 		*.mkv | *.mp4 | *.avi | *.flv)
