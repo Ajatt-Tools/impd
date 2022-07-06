@@ -22,6 +22,10 @@ Arch Linux users can install the
 [impd-git](https://aur.archlinux.org/packages/impd-git/)
 AUR package and skip to [Configuration](#configuration).
 
+<details>
+
+<summary>Manual installation</summary>
+
 1) Install dependencies
 
     * Mandatory:
@@ -41,6 +45,8 @@ AUR package and skip to [Configuration](#configuration).
     ```
     $ ln -s ~/.local/share/impd/impd ~/.local/bin/impd
     ```
+
+</details>
 
 ## Configuration
 
