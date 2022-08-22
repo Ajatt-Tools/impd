@@ -520,19 +520,19 @@ condense() {
 	fi
 	while getopts 'i:s:o:' flag; do
 		case $flag in
-			i)
-				local -r input=${OPTARG}
-				;;
-			s)
-				local -r subtitles=${OPTARG}
-				prefer_internal_subs=no
-				;;
-			o)
-				local -r output=${OPTARG}
-				;;
-			*)
-				echo "Unknown argument." && exit 1
-				;;
+		i)
+			local -r input=${OPTARG}
+			;;
+		s)
+			local -r subtitles=${OPTARG}
+			prefer_internal_subs=no
+			;;
+		o)
+			local -r output=${OPTARG}
+			;;
+		*)
+			echo "Unknown argument." && exit 1
+			;;
 		esac
 	done
 	unset flag
@@ -573,15 +573,15 @@ add_notify() {
 	local -r source_file=${1:?}
 
 	case $source_file in
-		http*youtu*be*)
-			local -r func=add_yt
-			;;
-		*.mp3 | *.ogg | *.wav | *.m4a | *.wma)
-			local -r func=add_audio
-			;;
-		*.mkv | *.mp4 | *.avi | *.flv)
-			local -r func=add_video
-			;;
+	http*youtu*be* | */watch?v=*)
+		local -r func=add_yt
+		;;
+	*.mp3 | *.ogg | *.wav | *.m4a | *.wma)
+		local -r func=add_audio
+		;;
+	*.mkv | *.mp4 | *.avi | *.flv)
+		local -r func=add_video
+		;;
 	esac
 
 	if [[ -z ${func-} ]]; then
@@ -596,18 +596,18 @@ add_notify() {
 
 add() {
 	case ${1-} in
-		-r | --recent | recent)
-			add_recent
-			return
-			;;
-		-s | --stdin | stdin)
-			add_stdin
-			return
-			;;
-		"")
-			echo "You haven't told me what to add."
-			return
-			;;
+	-r | --recent | recent)
+		add_recent
+		return
+		;;
+	-s | --stdin | stdin)
+		add_stdin
+		return
+		;;
+	"")
+		echo "You haven't told me what to add."
+		return
+		;;
 	esac
 	for arg; do
 		add_notify "$arg"
@@ -776,28 +776,28 @@ main() {
 	local args=()
 	for arg; do
 		case $arg in
-			-n | --no-condense) readonly global_no_condense='y' ;;
-			-f | --force) readonly global_overwrite='y' ;;
-			*) args+=("$arg") ;;
+		-n | --no-condense) readonly global_no_condense='y' ;;
+		-f | --force) readonly global_overwrite='y' ;;
+		*) args+=("$arg") ;;
 		esac
 	done
 	unset arg
 
 	case ${1-} in
-		'' | -h | --help) echo_help ;;
-		-v | --version) version ;;
-		*)
-			local -r command=${args[0]}
+	'' | -h | --help) echo_help ;;
+	-v | --version) version ;;
+	*)
+		local -r command=${args[0]}
 
-			if declare -f -- "$command" >/dev/null && [[ $command != "${FUNCNAME[0]}" ]]; then
-				# call arguments verbatim
-				"${args[@]}"
-			else
-				echo "Error: '$1' is not a known function name." >&2
-				echo_help
-				exit 1
-			fi
-			;;
+		if declare -f -- "$command" >/dev/null && [[ $command != "${FUNCNAME[0]}" ]]; then
+			# call arguments verbatim
+			"${args[@]}"
+		else
+			echo "Error: '$1' is not a known function name." >&2
+			echo_help
+			exit 1
+		fi
+		;;
 	esac
 }
 
