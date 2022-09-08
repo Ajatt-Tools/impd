@@ -579,7 +579,7 @@ add_notify() {
 	*.mp3 | *.ogg | *.wav | *.m4a | *.wma)
 		local -r func=add_audio
 		;;
-	*.mkv | *.mp4 | *.avi | *.flv)
+	*.mkv | *.mp4 | *.avi | *.flv | *.m4v)
 		local -r func=add_video
 		;;
 	esac
