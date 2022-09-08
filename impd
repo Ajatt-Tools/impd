@@ -653,10 +653,10 @@ add_yt() {
 
 archive() {
 	local -r archive_fol="$immersionpod_dir/$archive/$(date '+%Y-%V')"
+	local -a old_episodes=()
 
 	echo "Archiving old episodes..."
 
-	old_episodes=()
 	while IFS= read -r -d $'\0' filename; do
 		old_episodes+=("$filename")
 	done < <(find_outdated_audio)
@@ -665,12 +665,10 @@ archive() {
 	if [[ ${#old_episodes[@]} -gt 0 ]]; then
 		mkdir -pv -- "$archive_fol"
 		mv -v -- "${old_episodes[@]}" "$archive_fol"
-		local -r msg="Archived ${#old_episodes[@]} episodes."
+		notify_send "Archived ${#old_episodes[@]} episodes."
 	else
-		local -r msg="Nothing to archive."
+		notify_send "Nothing to archive."
 	fi
-
-	notify_send "$msg"
 }
 
 rotate() {
