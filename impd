@@ -126,12 +126,13 @@ best_track() {
 	done <<<"${langs//,/$'\n'}"
 }
 
-find_recent_videos() {
+find_recent_files() {
 	local -r sep=$([[ -n ${1-} ]] && echo 0)
 	# Search files that have been modified in the last N days
 	find "$video_dir" \
-		-type f \( -name '*.mkv' -o -name '*.mp4' \) \
-		-mtime "-$recent_threshold" "-print$sep" || exit 2
+		-type f \
+		-mtime "-$recent_threshold" \
+		"-print$sep" || exit 1
 }
 
 find_outdated_audio() {
@@ -615,21 +616,25 @@ add() {
 	unset arg
 }
 
+is_video() {
+	[[ $(file -b --mime-type -- "${1:?No file passed.}") == video/* ]]
+}
+
 add_stdin() {
 	if [[ -n ${1-} ]]; then
 		local -r sep=$'\0'
 	else
 		local -r sep=$'\n'
 	fi
-	while IFS= read -r -d "$sep" video; do
-		if grep -Pq "$filename_pattern" <<<"$video"; then
-			add_notify "$video"
+	while IFS= read -r -d "$sep" file; do
+		if grep -Pq "$filename_pattern" <<<"$file" && is_video "$file"; then
+			add_notify "$file"
 		fi
 	done
 }
 
 add_recent() {
-	find_recent_videos -0 | add_stdin -0
+	find_recent_files -0 | add_stdin -0
 }
 
 add_yt() {
