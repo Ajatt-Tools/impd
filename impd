@@ -573,17 +573,14 @@ add_video() {
 add_notify() {
 	local -r source_file=${1:?}
 
-	case $source_file in
-	http*youtu*be* | */watch?v=*)
+	if [[ -f $source_file ]]; then
+		case $(file -b --mime-type -- "$source_file") in
+		video/*) local -r func=add_video ;;
+		audio/*) local -r func=add_audio ;;
+		esac
+	elif [[ $source_file == http*youtu*be* ]] || [[ $source_file == *"/watch?v="* ]]; then
 		local -r func=add_yt
-		;;
-	*.mp3 | *.ogg | *.wav | *.m4a | *.wma)
-		local -r func=add_audio
-		;;
-	*.mkv | *.mp4 | *.avi | *.flv | *.m4v)
-		local -r func=add_video
-		;;
-	esac
+	fi
 
 	if [[ -z ${func-} ]]; then
 		echo "Error: '$source_file' is not a supported file type." >&2
