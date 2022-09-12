@@ -55,28 +55,28 @@ To configure the program create a config file at `~/.config/immersionpod/config`
 **Available options:**
 
 * `langs` - A comma-separated list of languages, in the order of preference.
-    `impd` will try to extract audio and use subtitles in the specified language.
-    If the required language is not found, it will try the next preference.
-    If you don't know the code for your language, run `impd probe` on a desired video file.
+  `impd` will try to extract audio and use subtitles in the specified language.
+  If the required language is not found, it will try the next preference.
+  If you don't know the code for your language, run `impd probe` on a desired video file.
 * `prefer_internal_subs` - Try to use internal subtitles when creating condensed audio.
-    If `impd` fails to do so, it tries external subtitles.
-    If the option is set to `no`, `impd` tries external subtitles first.
+  If `impd` fails to do so, it tries external subtitles.
+  If the option is set to `no`, `impd` tries external subtitles first.
 * `video_dir` - The default directory where your video files are stored.
-    The directory is searched for recently added files when you call `impd rotate`.
+  The directory is searched for recently added files when you call `impd rotate`.
 * `bitrate` - Audio bitrate.
-    It is recommended to keep it rather low to save disk space because `impd` deals with speech, not music.
-    Speech doesn't require high bitrates.
+  It is recommended to keep it rather low to save disk space because `impd` deals with speech, not music.
+  Speech doesn't require high bitrates.
 * `recent_threshold` - A file is considered recent if it has been modified in the last X days.
-    Audio files that are no longer recent get archived if you call `impd archive`,
-    and videos get skipped if you call `impd add_recent`.
+  Audio files that are no longer recent get archived if you call `impd archive`,
+  and videos get skipped if you call `impd add_recent`.
 * `padding` - Set a pad to the dialog timings. For example, 0.5 = half a second.
 * `music_dir` - Custom music directory. Set it only when `impd` fails to automatically detect your music directory.
-* `use_skip_pattern` - Toggles the use of `skip_pattern`. `yes` or `no`.
-* `skip_pattern` - Skip subtitle lines matching this RegExp.
+* `line_skip_pattern` - Skip subtitle lines matching this RegExp.
+  If empty, no lines will be skipped.
 Can be used to skip openings and endings by matching lines like `♪〜`.
 * `filename_skip_pattern` - Perl RegExp to match the filename of the input file.
-If it matches, `impd` skips the file.
-By default, it is set to skip filenames that contain `NCOP` or `NCED`.
+  If it matches, `impd` skips the file.
+  By default, it is set to skip filenames that contain `NCOP` or `NCED`.
 
 **Example config file:**
 
@@ -87,8 +87,7 @@ video_dir=~/Videos/ongoing
 bitrate=32k
 recent_threshold=10
 padding=0.2
-use_skip_pattern=yes
-skip_pattern="^♪〜$|^〜♪$"
+line_skip_pattern="^♪〜$|^〜♪$"
 filename_skip_pattern="NCOP|NCED"
 ```
 

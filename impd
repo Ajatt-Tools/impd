@@ -358,12 +358,12 @@ parse_speech_fragments() {
 }
 
 filter_non_speech_fragments() {
-	if [[ $use_skip_pattern != yes ]]; then
+	if [[ -z ${line_skip_pattern-} ]]; then
 		cat -
 		return
 	fi
 
-	awk -vSKIP_PATTERN="$skip_pattern" -vSRT_TIMING_PATTERN="$srt_timing_pattern" '
+	awk -vSKIP_PATTERN="$line_skip_pattern" -vSRT_TIMING_PATTERN="$srt_timing_pattern" '
 	$0 ~ SRT_TIMING_PATTERN {
 		timings[timings_len++] = $0
 		skip = 0
@@ -756,8 +756,7 @@ set_config_defaults() {
 	readonly bitrate=${bitrate:-32k}
 	readonly recent_threshold=${recent_threshold:-10}
 	readonly padding=${padding:-0.2}
-	readonly use_skip_pattern=${use_skip_pattern:-yes}
-	readonly skip_pattern=${skip_pattern:-"^♪〜$|^〜♪$|^・～$|.*{\\be1}.*"}
+	readonly line_skip_pattern=${line_skip_pattern:-"^♪〜$|^〜♪$|^・～$|.*{\\be1}.*"}
 	readonly filename_skip_pattern=${filename_skip_pattern:-"NCOP|NCED"}
 }
 
