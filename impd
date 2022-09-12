@@ -704,23 +704,23 @@ echo_help() {
 		Manage immersion audio.
 
 		ACTION Commands:
-		  add [OPTION] FILE	Add files to Immersion pod.
+		  add [OPTION] FILE Add files to Immersion pod.
 		    Options:
-		      -r, --recent	Add new files from your video directory to Immersion pod.
-		      -s, --stdin	Read filenames from stdin.
-		  condense [OPTION]	Condense a video.
+		      -r, --recent  Add new files from your video directory to Immersion pod.
+		      -s, --stdin   Read filenames from stdin.
+		  condense [OPTION] Condense a video.
 		    Options:
-		      -i		Input file.
-		      -o		Output file.
-		      -s		Subtitle file.
-		  archive		Move episodes older than $recent_threshold days to the archive folder.
-		  reshuffle		Re-add files to the playlist, shuffle them and start playing.
-		  rotate		Short for add_recent, archive, reshuffle.
-		  probe [a|s] FILE	Print streams in FILE.
+		      -i            Input file.
+		      -o            Output file.
+		      -s            Subtitle file.
+		  archive           Move episodes older than $recent_threshold days to the archive folder.
+		  reshuffle         Re-add files to the playlist, shuffle them and start playing.
+		  rotate            Short for add_recent, archive, reshuffle.
+		  probe [a|s] FILE Print streams in FILE.
 
 		Options:
-		  -f, --force		Overwrite existing files.
-		  -n, --no-condense	Don't condense audio.
+		  -f, --force        Overwrite existing files.
+		  -n, --no-condense Don't condense audio.
 
 		Examples:
 		  $bn add -f 'video.mkv'
@@ -734,7 +734,7 @@ echo_help() {
 version() {
 	cat <<-EOF
 		$(basename -- "$0") $version
-		Copyright (C) 2021 Ren Tatsumoto.
+		Copyright (C) 2021-2022 Ren Tatsumoto.
 		License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
 		This is free software: you are free to change and redistribute it.
 		There is NO WARRANTY, to the extent permitted by law.
