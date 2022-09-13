@@ -9,7 +9,7 @@
 > AJATT-style passive listening and condensed audio without bloat.
 
 Passive immersion is one of the key activities in
-[AJATT](http://www.alljapaneseallthetime.com/blog/all-japanese-all-the-time-ajatt-how-to-learn-japanese-on-your-own-having-fun-and-to-fluency/).
+[AJATT](https://tatsumoto.neocities.org/blog/foreword.html#all-japanese-all-the-time).
 This program lets
 [mpd](https://wiki.archlinux.org/index.php/Music_Player_Daemon)
 users convert foreign language movies and TV shows to audio and use it for passive listening.
@@ -180,12 +180,10 @@ for video in ./*.mkv; do
 done
 ```
 
-Print tracks available in the container.
-`a` for audio, `s` for subtitles.
+Print video, audio and subtitle tracks available in the container.
 
 ```
-$ impd probe a 'video.mkv'
-$ impd probe s 'video.mkv'
+$ impd probe 'video.mkv'
 ```
 
 Add an arbitrary audio to Immersion pod.
