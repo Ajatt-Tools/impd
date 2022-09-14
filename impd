@@ -27,7 +27,7 @@ readonly tmp_dir="/tmp/$program"
 readonly srt_timing_pattern='^[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3} --> [0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}$'
 
 probe_tracks() {
-	# Print tracks present in container, separated by commas.
+	# Print tracks present in container, separated by tabs.
 	# Format: index,lang,title,type
 
 	local -r video_filepath=$1
@@ -45,8 +45,11 @@ probe_tracks() {
 		-loglevel error \
 		-show_entries stream_tags=language,title:stream=index,codec_type \
 		-print_format default \
-		"$video_filepath" | awk -F= -vIGNORECASE=1 '
+		"$video_filepath" | awk '
 	BEGIN {
+		FS="="
+		OFS="\t"
+		IGNORECASE=1
 		shown_types["audio"] = 1
 		shown_types["subtitle"] = 1
 		shown_types["video"] = 1
@@ -72,7 +75,7 @@ probe_tracks() {
 	$0 == "[/STREAM]" {
 		for (type in shown_types) {
 			if (type == track_type) {
-				print track_index "," track_lang "," track_title "," track_type
+				print track_index, track_lang, track_title, track_type
 				break
 			}
 		}
@@ -83,10 +86,7 @@ probe() {
 	local -r video=${1:?Video filepath is not set.}
 
 	if [[ -f $video ]]; then
-		{
-			echo "Index,Language,Title,Type"
-			probe_tracks "$video"
-		} | column -s ',' -t
+		probe_tracks "$video" | column -s $'\t' -t -N 'Index,Language,Title,Type'
 	else
 		echo "'$video' is not a file."
 	fi
@@ -94,17 +94,17 @@ probe() {
 
 filter_tracks() {
 	# Filters output from probe_tracks
-	awk "-vMATCH=^$1" -F, '$4 ~ MATCH'
+	awk "-vMATCH=^$1" -F '\t' '$4 ~ MATCH'
 }
 
 best_track() {
 	local -r track_type=${1:?}
 	local -r video=${2:?}
-	local -r tracks=$(probe_tracks "$video" | filter_tracks "$track_type" | cut -d, -f1,2)
+	local -r tracks=$(probe_tracks "$video" | filter_tracks "$track_type" | cut -f1,2)
 
 	local lang track_num track_lang
 	while IFS= read -r lang; do
-		while IFS=, read -r track_num track_lang; do
+		while IFS=$'\t' read -r track_num track_lang; do
 			if [[ $lang == "$track_lang" ]]; then
 				echo "$track_num"
 				return
