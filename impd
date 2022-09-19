@@ -443,19 +443,19 @@ add_metadata() {
 }
 
 make_condensed() {
-	local -r video=$(readlink -f "${1:?}")
+	local -r video=$(readlink -f -- "${1:?}")
 	local -r base=$(basename -- "${video%.*}" | tr -d \')
 
 	local -r job_dir=$(mktemp -d --tmpdir="$tmp_dir" -t "$base.job-XXXX")
 
 	local -r temp_audio=$job_dir/$base.ogg
-	local -r output=$(readlink -f "${2:-$immersionpod_dir/$current/$base.ogg}")
+	local -r output=$(readlink -f -- "${2:-$immersionpod_dir/$current/$base.ogg}")
 
 	local -r chunks_dir=$(mktemp -d --tmpdir="$job_dir" -t "chunks-XXXX")
 	local -r chunks_file=$job_dir/chunks.list
 
 	local -r subs_out=$job_dir/$base.srt
-	local -r subs_external=$(readlink -f "${3:-$(find_external_subtitles "$video")}")
+	local -r subs_external=$(readlink -f -- "${3:-$(find_external_subtitles "$video")}")
 	local -r subs_track_num=${4-}
 
 	__make_condensed() {
@@ -598,24 +598,30 @@ add_notify() {
 }
 
 add() {
-	case ${1-} in
-	-r | --recent | recent)
-		add_recent
-		return
-		;;
-	-s | --stdin | stdin)
-		add_stdin
-		return
-		;;
-	"")
-		echo "You haven't told me what to add."
-		return
-		;;
-	esac
+	local -a file_list=()
 	for arg; do
-		add_notify "$arg"
+		case $arg in
+		-r | --recent | recent)
+			local -r func=add_recent
+			;;
+		-s | --stdin | stdin)
+			local -r func=add_stdin
+			;;
+		*)
+			if [[ -f $arg ]]; then
+				file_list+=("$arg")
+			else
+				echo "Unknown option: $arg"
+			fi
+			;;
+		esac
 	done
-	unset arg
+	if [[ -n ${func-} ]]; then
+		"$func"
+	fi
+	for file in "${file_list[@]}"; do
+		add_notify "$file"
+	done
 }
 
 is_video() {
