@@ -441,45 +441,6 @@ add_metadata() {
 		"$output"
 }
 
-__make_condensed() {
-	if ! check_output; then
-		return 1
-	fi
-
-	if [[ ! -f $temp_audio ]] && ! extract_audio "$video" "$temp_audio"; then
-		return 1
-	fi
-
-	if ! fetch_video_subtitles "$video" "$subs_ext" "$subs_out"; then
-		echo "File '$(basename -- "$temp_audio")' will be added without condensing."
-		add_metadata "$temp_audio" "$output"
-		return
-	fi
-
-	local start end chunk_path
-	while IFS=, read -r start end; do
-		echo "Processing chunk from $start to $end..." >&3
-		chunk_path=$chunks_dir/${base}_${start}-${end}.ogg
-		make_chunk "$temp_audio" "$chunk_path" "$start" "$end"
-		if [[ -f $chunk_path ]]; then echo "file '$chunk_path'"; fi
-	done < <(filter_non_speech_fragments <"${subs_out:?}" | parse_speech_fragments) 3>&1 >"$chunks_file"
-
-	ffmpeg -nostdin \
-		-hide_banner \
-		-loglevel error \
-		-vn \
-		-sn \
-		-y \
-		-f concat \
-		-safe 0 \
-		-i "$chunks_file" \
-		-map_metadata -1 \
-		-c copy \
-		"$temp_audio"
-
-	add_metadata "$temp_audio" "$output"
-}
-
 make_condensed() {
 	local -r video=$(readlink -f "${1:?}")
 	local -r base=$(basename -- "${video%.*}" | tr -d \')
@@ -493,13 +454,49 @@ make_condensed() {
 	local -r chunks_file=$job_dir/chunks.list
 
 	local -r subs_out=$job_dir/$base.srt
-	local -r subs_ext=$(readlink -f "${3:-$(find_external_subtitles "$video")}")
+	local -r subs_external=$(readlink -f "${3:-$(find_external_subtitles "$video")}")
 
-	if __make_condensed; then
-		local -r result=0
-	fi
+	__make_condensed() {
+		if ! check_output; then
+			return 1
+		fi
+
+		if [[ ! -f $temp_audio ]] && ! extract_audio "$video" "$temp_audio"; then
+			return 1
+		fi
+
+		if ! fetch_video_subtitles "$video" "$subs_external" "$subs_out"; then
+			echo "File '$(basename -- "$temp_audio")' will be added without condensing."
+			add_metadata "$temp_audio" "$output"
+			return
+		fi
+
+		local start end chunk_path
+		while IFS=, read -r start end; do
+			echo "Processing chunk from $start to $end..." >&3
+			chunk_path=$chunks_dir/${base}_${start}-${end}.ogg
+			make_chunk "$temp_audio" "$chunk_path" "$start" "$end"
+			if [[ -f $chunk_path ]]; then echo "file '$chunk_path'"; fi
+		done < <(filter_non_speech_fragments <"${subs_out:?}" | parse_speech_fragments) 3>&1 >"$chunks_file"
+
+		ffmpeg -nostdin \
+			-hide_banner \
+			-loglevel error \
+			-vn \
+			-sn \
+			-y \
+			-f concat \
+			-safe 0 \
+			-i "$chunks_file" \
+			-map_metadata -1 \
+			-c copy \
+			"$temp_audio"
+
+		add_metadata "$temp_audio" "$output"
+	}
+
+	__make_condensed || true
 	rm -rf -- "$job_dir"
-	return ${result-1}
 }
 
 condense() {
@@ -546,9 +543,8 @@ add_audio_remote() {
 	local -r source_url=${1:?}
 	local -r job_dir=$(mktemp -d --tmpdir="$tmp_dir" -t "download.job-XXXX")
 	(
-		cd -- "$job_dir"
-		curl -L -O "$source_url"
-		for file in ./*; do
+		cd -- "$job_dir" && curl -L -O "$source_url"
+		for file in "$job_dir"/*; do
 			make_uncondensed "$file" || true
 		done
 	)
