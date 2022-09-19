@@ -533,26 +533,8 @@ notify_send() {
 	fi
 }
 
-add_audio_file() {
-	local -r source_file=${1:?}
-
-	make_uncondensed "$source_file"
-}
-
-add_audio_remote() {
-	local -r source_url=${1:?}
-	local -r job_dir=$(mktemp -d --tmpdir="$tmp_dir" -t "download.job-XXXX")
-	(
-		cd -- "$job_dir" && curl -L -O "$source_url"
-		for file in "$job_dir"/*; do
-			make_uncondensed "$file" || true
-		done
-	)
-	rm -rf -- "$job_dir"
-}
-
-add_video_file() {
-	local -r source_file=$(readlink -f "${1:?}")
+add_file() {
+	local -r source_file=$(readlink -f -- "${1:?}")
 
 	if [[ -f $source_file ]]; then
 		if [[ -z ${global_no_condense-} ]]; then
@@ -563,8 +545,16 @@ add_video_file() {
 	fi
 }
 
-add_video_remote() {
-	echo "Not implemented"
+add_remote() {
+	local -r source_url=${1:?}
+	local -r job_dir=$(mktemp -d --tmpdir="$tmp_dir" -t "download.job-XXXX")
+	(
+		cd -- "$job_dir" && curl -L -O "$source_url"
+		for file in "$job_dir"/*; do
+			add_file "$file" || true
+		done
+	)
+	rm -rf -- "$job_dir"
 }
 
 add_notify() {
@@ -572,14 +562,18 @@ add_notify() {
 
 	if [[ -f $source_file ]]; then
 		case $(file -b --mime-type -- "$source_file") in
-		video/*) local -r func=add_video_file ;;
-		audio/*) local -r func=add_audio_file ;;
+		video/* | audio/*)
+			local -r func=add_file
+			;;
 		esac
 	elif [[ $source_file == http*//* ]]; then
 		case $source_file in
-		*youtu*be* | *"/watch?v="*) local -r func=add_yt ;;
-		*.mp3 | *.ogg | *.wav | *.m4a | *.wma) local -r func=add_audio_remote ;;
-		*.mkv | *.mp4 | *.avi | *.flv | *.m4v) local -r func=add_video_remote ;;
+		*youtu*be* | *"/watch?v="*)
+			local -r func=add_yt
+			;;
+		*.mp3 | *.ogg | *.wav | *.m4a | *.wma | *.mkv | *.mp4 | *.avi | *.flv | *.m4v)
+			local -r func=add_remote
+			;;
 		esac
 	fi
 
@@ -664,7 +658,7 @@ add_yt() {
 
 	for file in "$job_dir"/*; do
 		if [[ $(file -b --mime-type -- "$file") == audio/* ]]; then
-			add_video_file "$file" || true
+			add_file "$file" || true
 		fi
 	done
 
