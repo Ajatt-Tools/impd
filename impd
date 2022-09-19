@@ -538,13 +538,20 @@ notify_send() {
 add_audio_file() {
 	local -r source_file=${1:?}
 
-	cp -- "$source_file" "$immersionpod_dir/$current/"
+	make_uncondensed "$source_file"
 }
 
 add_audio_remote() {
-	local -r source_file=${1:?}
-
-	(cd -- "$immersionpod_dir/$current/" && curl "$source_file" -L -O)
+	local -r source_url=${1:?}
+	local -r job_dir=$(mktemp -d --tmpdir="$tmp_dir" -t "download.job-XXXX")
+	(
+		cd -- "$job_dir"
+		curl -L -O "$source_url"
+		for file in ./*; do
+			make_uncondensed "$file" || true
+		done
+	)
+	rm -rf -- "$job_dir"
 }
 
 add_video_file() {
