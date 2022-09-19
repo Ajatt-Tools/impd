@@ -101,21 +101,31 @@ the only command you are going to need is `impd rotate`.
 **Available commands:**
 
 * `add [OPTION] FILE` - Convert videos to audio and add them to Immersion pod.
+  `impd` will guess what audio and subtitles to use.
 
-    **Arguments for `impd add`:**
-    * `-r`, `--recent` - Add files modified in the last `recent_threshold` days
+  **Options for `impd add`:**
+
+  * `-r`, `--recent` - Add files
+    modified in the last `recent_threshold` days
     from your video directory to Immersion pod.
-    * `-s`, `--stdin` - Read filenames from stdin.
+  * `-s`, `--stdin` - Read filenames from stdin.
 
-    If FILE is an audio file, it is copied without processing.
+    If FILE is an audio file, it is added as well.
     You can use this to add existing podcasts or audiobooks to impd.
-* `condense -i video [-o audio] [-s subtitles]` - Make condensed audio and store it in an arbitrary location.
+* `condense -i video [-o output audio] [-s subtitle file] [-t subtitle track number]` - Make condensed audio and store it in an arbitrary location.
+
+  This function gives more precise control than `add`.
+  If you don't specify `output audio`, the standard Immersion pod directory will be used.
+  If you specify `subtitle file`, an **external** subtitle file will be used.
+  If you specify `subtitle track number`, an **internal** subtitle track number will be used.
+  Run `impd probe FILE` to output tracks and their corresponding numbers.
 * `archive` - Move episodes older than `recent_threshold` days to the archive folder.
 * `reshuffle` - Re-add files to the playlist, shuffle them and start playing.
 * `rotate` - Archive old immersion material and make new based on videos in your video directory.
-    Equivalent to `impd add --recent` > `impd archive` > `impd reshuffle`.
+  Equivalent to calling `impd add --recent`, `impd archive` and `impd reshuffle`.
 
-**Optional arguments:**
+**Global options:**
+
 * `-f`, `--force` - Overwrite existing files.
 * `-n`, `--no-condense` - Don't condense audio.
 
