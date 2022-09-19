@@ -535,17 +535,19 @@ notify_send() {
 	fi
 }
 
-add_audio() {
+add_audio_file() {
 	local -r source_file=${1:?}
 
-	if [[ -f $source_file ]]; then
-		cp -- "$source_file" "$immersionpod_dir/$current/"
-	elif [[ $source_file == http* ]]; then
-		(cd -- "$immersionpod_dir/$current/" && curl "$source_file" -L -O)
-	fi
+	cp -- "$source_file" "$immersionpod_dir/$current/"
 }
 
-add_video() {
+add_audio_remote() {
+	local -r source_file=${1:?}
+
+	(cd -- "$immersionpod_dir/$current/" && curl "$source_file" -L -O)
+}
+
+add_video_file() {
 	local -r source_file=$(readlink -f "${1:?}")
 
 	if [[ -f $source_file ]]; then
@@ -557,16 +559,24 @@ add_video() {
 	fi
 }
 
+add_video_remote() {
+	echo "Not implemented"
+}
+
 add_notify() {
 	local -r source_file=${1:?}
 
 	if [[ -f $source_file ]]; then
 		case $(file -b --mime-type -- "$source_file") in
-		video/*) local -r func=add_video ;;
-		audio/*) local -r func=add_audio ;;
+		video/*) local -r func=add_video_file ;;
+		audio/*) local -r func=add_audio_file ;;
 		esac
-	elif [[ $source_file == http*youtu*be* ]] || [[ $source_file == *"/watch?v="* ]]; then
-		local -r func=add_yt
+	elif [[ $source_file == http*//* ]]; then
+		case $source_file in
+		*youtu*be* | *"/watch?v="*) local -r func=add_yt ;;
+		*.mp3 | *.ogg | *.wav | *.m4a | *.wma) local -r func=add_audio_remote ;;
+		*.mkv | *.mp4 | *.avi | *.flv | *.m4v) local -r func=add_video_remote ;;
+		esac
 	fi
 
 	if [[ -z ${func-} ]]; then
