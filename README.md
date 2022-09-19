@@ -187,7 +187,6 @@ $ impd probe 'video.mkv'
 ```
 
 Add an arbitrary audio to Immersion pod.
-Files are copied or downloaded as is.
 
 ```
 $ impd add ~/podcast.mp3

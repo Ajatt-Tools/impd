@@ -635,23 +635,40 @@ add_recent() {
 	find_recent_files -0 | add_stdin -0
 }
 
-add_yt() {
-	local -r _ytdl=$(command -v yt-dlp || command -v youtube-dl)
+download_yt() {
+	local -r ytdl=$(command -v yt-dlp || command -v youtube-dl)
 
-	if [[ -z $_ytdl ]]; then
+	if [[ -z $ytdl ]]; then
 		echo "Error: 'youtube-dl' or 'yt-dlp' is not installed." >&2
 		return 1
 	fi
 
-	"$_ytdl" \
+	"$ytdl" \
 		--ignore-errors \
 		--extract-audio \
 		--add-metadata \
 		--continue \
 		--no-mtime \
+		--write-subs \
+		--convert-subs srt \
 		-f bestaudio/best \
-		-o "$immersionpod_dir/$current/%(uploader)s%(title)s.%(ext)s" \
-		"${*:?}"
+		--geo-bypass \
+		"$@"
+}
+
+add_yt() {
+	local -r source_url=${1:?}
+	local -r job_dir=$(mktemp -d --tmpdir="$tmp_dir" -t "youtube-dl.job-XXXX")
+
+	download_yt -o "$job_dir/%(uploader)s - %(title)s.%(ext)s" "$source_url"
+
+	for file in "$job_dir"/*; do
+		if [[ $(file -b --mime-type -- "$file") == audio/* ]]; then
+			add_video_file "$file" || true
+		fi
+	done
+
+	rm -rf -- "$job_dir"
 }
 
 archive() {
