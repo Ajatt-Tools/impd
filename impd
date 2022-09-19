@@ -159,7 +159,7 @@ fetch_episode_number() {
 extract_subtitles() {
 	local -r input=${1:?}
 	local -r output=${2:?}
-	local -r track_num=$(best_track s "$input")
+	local -r track_num=${3:-$(best_track s "$input")}
 
 	echo "Extracting track #${track_num:-auto} (subtitles) from $(basename -- "$input")..."
 	ffmpeg -nostdin \
@@ -393,9 +393,10 @@ fetch_video_subtitles() {
 	local -r video=${1:?}
 	local -r subs_ext=${2:-}
 	local -r subs_out=${3:?}
+	local -r track_num=${4-}
 
 	if [[ $prefer_internal_subs == 'yes' ]]; then
-		if [[ -f "$subs_out" ]] || extract_subtitles "$video" "$subs_out"; then
+		if [[ -f "$subs_out" ]] || extract_subtitles "$video" "$subs_out" "$track_num"; then
 			echo "Extracted internal subtitles."
 		else
 			echo "Failed to extract internal subtitles."
@@ -411,7 +412,7 @@ fetch_video_subtitles() {
 			echo "External subtitle file '$(basename -- "$subs_ext")' will be used."
 			sub_conv "$subs_ext" "$subs_out"
 		else
-			if [[ -f "$subs_out" ]] || extract_subtitles "$video" "$subs_out"; then
+			if [[ -f "$subs_out" ]] || extract_subtitles "$video" "$subs_out" "$track_num"; then
 				echo "Extracted internal subtitles."
 			else
 				echo "Failed to extract internal subtitles."
@@ -455,9 +456,15 @@ make_condensed() {
 
 	local -r subs_out=$job_dir/$base.srt
 	local -r subs_external=$(readlink -f "${3:-$(find_external_subtitles "$video")}")
+	local -r subs_track_num=${4-}
 
 	__make_condensed() {
 		if ! check_output; then
+			return 1
+		fi
+
+		if [[ -n $sub_track_num ]] && ! [[ $sub_track_num =~ ^[0-9]+$ ]]; then
+			echo "Provided subtitle track number isn't a numeric value."
 			return 1
 		fi
 
@@ -465,7 +472,7 @@ make_condensed() {
 			return 1
 		fi
 
-		if ! fetch_video_subtitles "$video" "$subs_external" "$subs_out"; then
+		if ! fetch_video_subtitles "$video" "$subs_external" "$subs_out" "$subs_track_num"; then
 			echo "File '$(basename -- "$temp_audio")' will be added without condensing."
 			add_metadata "$temp_audio" "$output"
 			return
@@ -501,10 +508,10 @@ make_condensed() {
 
 condense() {
 	if [[ -z $* ]]; then
-		echo "Usage: condense -i [INPUT] -s [SUBTITLES] -o [OUTPUT]"
+		echo "Usage: condense -i INPUT -s [SUBTITLES FILE] -o [OUTPUT FILE] -t [SUBTITLE TRACK NUMBER]"
 		return 1
 	fi
-	while getopts 'i:s:o:' flag; do
+	while getopts 'i:s:o:t:' flag; do
 		case $flag in
 		i)
 			local -r input=${OPTARG}
@@ -516,13 +523,16 @@ condense() {
 		o)
 			local -r output=${OPTARG}
 			;;
+		t)
+			local -r sub_track_num=${OPTARG}
+			;;
 		*)
 			echo "Unknown argument." && exit 1
 			;;
 		esac
 	done
 	unset flag
-	make_condensed "${input:?Input video file is not set.}" "${output-}" "${subtitles-}"
+	make_condensed "${input:?Input video file is not set.}" "${output-}" "${subtitles-}" "${sub_track_num-}"
 }
 
 notify_send() {
@@ -743,15 +753,16 @@ echo_help() {
 		  condense [OPTION] Condense a video.
 		    Options:
 		      -i            Input file.
-		      -o            Output file.
-		      -s            Subtitle file.
+		      -o            Optional output file.
+		      -s            Optional subtitle file.
+		      -t            Optional subtitle track number, if internal subtitles should be used.
 		  archive           Move episodes older than $recent_threshold days to the archive folder.
 		  reshuffle         Re-add files to the playlist, shuffle them and start playing.
 		  rotate            Short for add_recent, archive, reshuffle.
 		  probe [a|s] FILE Print streams in FILE.
 
 		Options:
-		  -f, --force        Overwrite existing files.
+		  -f, --force       Overwrite existing files.
 		  -n, --no-condense Don't condense audio.
 
 		Examples:
