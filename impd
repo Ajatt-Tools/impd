@@ -463,7 +463,7 @@ make_condensed() {
 			return 1
 		fi
 
-		if [[ -n $sub_track_num ]] && ! [[ $sub_track_num =~ ^[0-9]+$ ]]; then
+		if [[ -n $subs_track_num ]] && ! [[ $subs_track_num =~ ^[0-9]+$ ]]; then
 			echo "Provided subtitle track number isn't a numeric value."
 			return 1
 		fi
@@ -524,7 +524,7 @@ condense() {
 			local -r output=${OPTARG}
 			;;
 		t)
-			local -r sub_track_num=${OPTARG}
+			local -r subs_track_num=${OPTARG}
 			;;
 		*)
 			echo "Unknown argument." && exit 1
@@ -532,7 +532,7 @@ condense() {
 		esac
 	done
 	unset flag
-	make_condensed "${input:?Input video file is not set.}" "${output-}" "${subtitles-}" "${sub_track_num-}"
+	make_condensed "${input:?Input video file is not set.}" "${output-}" "${subtitles-}" "${subs_track_num-}"
 }
 
 notify_send() {
@@ -608,11 +608,7 @@ add() {
 			local -r func=add_stdin
 			;;
 		*)
-			if [[ -f $arg ]]; then
-				file_list+=("$arg")
-			else
-				echo "Unknown option: $arg"
-			fi
+			file_list+=("$arg")
 			;;
 		esac
 	done
