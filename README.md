@@ -113,7 +113,6 @@ the only command you are going to need is `impd rotate`.
     If FILE is an audio file, it is added as well.
     You can use this to add existing podcasts or audiobooks to impd.
 * `condense -i video [-o output audio] [-s subtitle file] [-t subtitle track number]` - Make condensed audio and store it in an arbitrary location.
-
   This function gives more precise control than `add`.
   If you don't specify `output audio`, the standard Immersion pod directory will be used.
   If you specify `subtitle file`, an **external** subtitle file will be used.
@@ -158,6 +157,12 @@ $ impd rotate
 ```
 
 **Tip:** Add `impd rotate` as a cronjob or bind it to any key in your DE, WM, sxhkd, xbindkeysrc, etc.
+
+Condense audio on demand.
+
+```
+$ impd condense -i 'video.mkv' -o 'audio.ogg' -s 'subtitles.srt'
+```
 
 ## Miscellaneous
 
