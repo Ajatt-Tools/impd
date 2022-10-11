@@ -395,7 +395,7 @@ fetch_video_subtitles() {
 	local -r subs_out=${3:?}
 	local -r track_num=${4-}
 
-	if [[ $prefer_internal_subs == 'yes' ]]; then
+	if [[ $prefer_internal_subs == 'yes' ]] && ! [[ ${forced_external_subs-} == 'yes' ]]; then
 		if [[ -f "$subs_out" ]] || extract_subtitles "$video" "$subs_out" "$track_num"; then
 			echo "Extracted internal subtitles."
 		else
@@ -518,7 +518,7 @@ condense() {
 			;;
 		s)
 			local -r subtitles=${OPTARG}
-			prefer_internal_subs=no
+			readonly forced_external_subs=yes
 			;;
 		o)
 			local -r output=${OPTARG}
