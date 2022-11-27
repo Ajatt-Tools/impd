@@ -194,8 +194,8 @@ check_output() {
 }
 
 extract_audio() {
-	local -r input=$(readlink -f "${1:?}")
-	local -r output=$(readlink -f "${2:-$immersionpod_dir/$current/$(basename -- "${input%.*}").ogg}")
+	local -r input=$(readlink -f -- "${1:?}")
+	local -r output=$(readlink -f -- "${2:-$immersionpod_dir/$current/$(basename -- "${input%.*}").ogg}")
 	local -r track_num=$(best_track a "$input")
 
 	if ! check_output; then
@@ -277,7 +277,7 @@ sub_conv() {
 	local -r input=${1:?Input file is not specified.}
 	local -r output=${2:?Output file is not specified.}
 
-	if [[ $output == "$input" ]]; then
+	if [[ $output -ef "$input" ]]; then
 		echo "Input and output can't be the same file."
 		return 1
 	fi
@@ -436,9 +436,25 @@ add_metadata() {
 		-c copy \
 		-metadata title="$(fetch_title "$input")" \
 		-metadata artist="impd" \
-		-metadata album="$(date '+%Y-%V')" \
+		-metadata album="impd-$(date '+%Y-%V')" \
 		-metadata date="$(date '+%Y')" \
 		-metadata track="$(fetch_episode_number "$input")" \
+		"$output"
+}
+
+concat_audio() {
+	local -r chunks_file=$1 output=$2
+	ffmpeg -nostdin \
+		-hide_banner \
+		-loglevel error \
+		-vn \
+		-sn \
+		-y \
+		-f concat \
+		-safe 0 \
+		-i "$chunks_file" \
+		-map_metadata -1 \
+		-c copy \
 		"$output"
 }
 
@@ -486,19 +502,7 @@ make_condensed() {
 			if [[ -f $chunk_path ]]; then echo "file '$chunk_path'"; fi
 		done < <(filter_non_speech_fragments <"${subs_out:?}" | parse_speech_fragments) 3>&1 >"$chunks_file"
 
-		ffmpeg -nostdin \
-			-hide_banner \
-			-loglevel error \
-			-vn \
-			-sn \
-			-y \
-			-f concat \
-			-safe 0 \
-			-i "$chunks_file" \
-			-map_metadata -1 \
-			-c copy \
-			"$temp_audio"
-
+		concat_audio "$chunks_file" "$temp_audio"
 		add_metadata "$temp_audio" "$output"
 	}
 
@@ -745,6 +749,7 @@ echo_help() {
 	local -r bn=$(basename -- "$0")
 	cat <<-EOF
 		Usage: $bn ACTION [OPTION] FILE
+
 		Manage immersion audio.
 
 		ACTION Commands:
@@ -772,6 +777,7 @@ echo_help() {
 		  $bn rotate
 		  find /mnt/videos/ | $bn add --stdin
 
+		Full documentation https://github.com/Ajatt-Tools/impd
 		To report bugs, see https://matrix.to/#/#djtspace:g33k.se
 	EOF
 }
@@ -816,30 +822,29 @@ main() {
 	# Load configuration file, then apply settings omitted in the config file.
 	read_config_file
 	set_config_defaults
-
 	set_impd_dir
 	ensure_dirs
 
 	# Process global arguments
-	local args=()
+	local -a opt_rest=()
 	for arg; do
 		case $arg in
 		-n | --no-condense) readonly global_no_condense='y' ;;
 		-f | --force) readonly global_overwrite='y' ;;
-		*) args+=("$arg") ;;
+		*) opt_rest+=("$arg") ;;
 		esac
 	done
 	unset arg
 
-	case ${1-} in
+	case ${opt_rest[*]} in
 	'' | -h | --help) echo_help ;;
 	-v | --version) version ;;
 	*)
-		local -r command=${args[0]}
+		local -r command=${opt_rest[0]}
 
 		if declare -f -- "$command" >/dev/null && [[ $command != "${FUNCNAME[0]}" ]]; then
 			# call arguments verbatim
-			"${args[@]}"
+			"${opt_rest[@]}"
 		else
 			echo "Error: '$1' is not a known function name." >&2
 			echo_help
