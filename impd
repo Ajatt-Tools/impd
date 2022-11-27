@@ -83,7 +83,12 @@ probe_tracks() {
 }
 
 probe() {
-	local -r video=${1:?Video filepath is not set.}
+	if [[ -z $* ]]; then
+		echo "Usage: $(basename -- "$0") probe FILE"
+		return 1
+	fi
+
+	local -r video=$1
 
 	if [[ -f $video ]]; then
 		probe_tracks "$video" | column -s $'\t' -t -N 'Index,Language,Title,Type'
@@ -512,10 +517,10 @@ make_condensed() {
 
 condense() {
 	if [[ -z $* ]]; then
-		echo "Usage: condense -i INPUT -s [SUBTITLES FILE] -o [OUTPUT FILE] -t [SUBTITLE TRACK NUMBER]"
+		echo "Usage: $(basename -- "$0") condense -i INPUT -s [SUBTITLES FILE] -o [OUTPUT FILE] -t [SUBTITLE TRACK NUMBER]"
 		return 1
 	fi
-	while getopts 'i:s:o:t:' flag; do
+	while getopts 'i: s: o: t:' flag; do
 		case $flag in
 		i)
 			local -r input=${OPTARG}
@@ -602,6 +607,10 @@ add_notify() {
 }
 
 add() {
+	if [[ -z $* ]]; then
+		echo "Usage: $(basename -- "$0") add [--recent] [--stdin] [FILE]"
+		return 1
+	fi
 	local -a file_list=()
 	for arg; do
 		case $arg in
