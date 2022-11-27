@@ -612,18 +612,24 @@ add() {
 		return 1
 	fi
 	local -a file_list=()
-	for arg; do
-		case $arg in
+	while (($# > 0)); do
+		case $1 in
 		-r | --recent | recent)
 			local -r func=add_recent
 			;;
 		-s | --stdin | stdin)
 			local -r func=add_stdin
 			;;
+		--)
+			shift
+			file_list+=("$@")
+			break
+			;;
 		*)
-			file_list+=("$arg")
+			file_list+=("$1")
 			;;
 		esac
+		shift
 	done
 	if [[ -n ${func-} ]]; then
 		"$func"
