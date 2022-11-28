@@ -738,26 +738,31 @@ rotate() {
 	reshuffle
 }
 
-get_mpd_dir() {
+grep_mpd_dir() {
 	# https://wiki.archlinux.org/index.php/Music_Player_Daemon#Configuration
-	local -r mpd_conf=~/.config/mpd/mpd.conf
-	# shellcheck disable=SC2088
-	{
-		echo '~/music'
-		if [[ -d $music_dir ]]; then
-			echo "$music_dir"
-		else
-			grep -Pos 'music_directory\s*"?\K[^"]*(?="?)' -- "$mpd_conf"
+	grep -Pos 'music_directory\s*"?\K[^"]*(?="?)' -- ~/.config/mpd/mpd.conf
+}
+
+choose_mpd_dir() {
+	local dir
+	for dir in "$music_dir" "$(grep_mpd_dir)" "$(xdg-user-dir MUSIC)" ~/Music ~/music; do
+		dir=${dir/\~/$HOME}
+		dir=${dir//\/\//\/}
+		dir=${dir%%/}
+		if [[ -d $dir ]]; then
+			echo "$dir"
+			return
 		fi
-	} | tail -1
+	done
 }
 
 set_impd_dir() {
 	local dir
-	dir=$(get_mpd_dir)/$program
-	dir=${dir/\~/$HOME}
-	dir=${dir//\/\//\/}
-	readonly immersionpod_dir=$dir
+	if ! [[ -d ${dir:=$(choose_mpd_dir)} ]]; then
+		echo "Couldn't detect the mpd directory."
+		exit 1
+	fi
+	readonly immersionpod_dir=$dir/$program
 }
 
 echo_help() {
