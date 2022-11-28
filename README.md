@@ -79,6 +79,9 @@ Can be used to skip openings and endings by matching lines like `♪〜`.
 * `filename_skip_pattern`. Perl RegExp to match the filename of the input file.
   If it matches, `impd` skips the file.
   By default, it is set to skip filenames that contain `NCOP` or `NCED`.
+* `extract_audio_add_args`.
+  Defines an array of additional arguments which should be passed to `ffmpeg`
+  when extracting audio tracks from videos.
 
 **Example config file:**
 
@@ -91,6 +94,7 @@ recent_threshold=10
 padding=0.2
 line_skip_pattern="^♪〜$|^〜♪$"
 filename_skip_pattern="NCOP|NCED"
+extract_audio_add_args=(-af loudnorm=I=-16:TP=-1.5:LRA=11)
 ```
 
 If a value is omitted from the config file, the default value will be used.

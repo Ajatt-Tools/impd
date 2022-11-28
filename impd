@@ -25,6 +25,7 @@ readonly archive='archive'
 readonly config_filepath=${XDG_CONFIG_HOME:-$HOME/.config}/$program/config
 readonly tmp_dir="/tmp/$program"
 readonly srt_timing_pattern='^[0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3} --> [0-9]{2}:[0-9]{2}:[0-9]{2},[0-9]{3}$'
+declare -a extract_audio_add_args=(-af loudnorm=I=-16:TP=-1.5:LRA=11)
 
 probe_tracks() {
 	# Print tracks present in container, separated by tabs.
@@ -228,6 +229,7 @@ extract_audio() {
 		-compression_level 10 \
 		-application voip \
 		-acodec libopus \
+		"${extract_audio_add_args[@]}" \
 		"$output" &&
 		echo "$output has been written."
 }
@@ -829,6 +831,7 @@ set_config_defaults() {
 	readonly padding=${padding:-0.2}
 	readonly line_skip_pattern=${line_skip_pattern:-"^♪?〜♪?$|^・～$|.*{\\be1}.*"}
 	readonly filename_skip_pattern=${filename_skip_pattern:-"NCOP|NCED"}
+	readonly -a extract_audio_add_args
 }
 
 ensure_dirs() {
