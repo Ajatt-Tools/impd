@@ -19,7 +19,7 @@
 # Any modifications to this file must keep this entire header intact.
 
 readonly program='immersionpod'
-readonly version=v0.6
+readonly version=v0.7
 readonly current='current'
 readonly archive='archive'
 readonly config_filepath=${XDG_CONFIG_HOME:-$HOME/.config}/$program/config
