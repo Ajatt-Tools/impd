@@ -59,7 +59,8 @@ To configure the program create a config file at `~/.config/immersionpod/config`
   `impd` will try to extract audio and use subtitles in the specified language.
   If the required language is not found, it will try the next preference.
   If you don't know the code for your language, run `impd probe` on a desired video file.
-* `prefer_internal_subs`. Try to use internal subtitles when creating condensed audio.
+* `prefer_internal_subs`.
+  If set to `yes`, try to use internal subtitles when creating condensed audio.
   If `impd` fails to do so, it tries external subtitles.
   If the option is set to `no`, `impd` tries external subtitles first.
 * `video_dir`. The default directory where your video files are stored.
@@ -98,7 +99,7 @@ extract_audio_add_args=(-af loudnorm=I=-16:TP=-1.5:LRA=11)
 ```
 
 If a value is omitted from the config file, the default value will be used.
-The config file is sourced so don't put stuff like `$ rm -rf ~/*` there, or it will bite you back.
+The config file is sanitized and then sourced.
 
 ## Usage
 
