@@ -139,7 +139,7 @@ fetch_title() {
 			-e 's/fansub\|vostfr\|10bits\|BluRay\|x26[45]\|AAC\|flac//gi' \
 			-Ee 's/[0-9]{3,4}[pP]//g' \
 			-Ee 's/(\[|\()[^])]*(\]|\))//g' \
-			-e 's/^ *//; s/ *$//' \
+			-e 's/^[ -]*//; s/[- ]*$//' \
 			-Ee 's/ +/ /g'
 	}
 	print_name() {
