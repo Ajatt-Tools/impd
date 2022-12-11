@@ -138,10 +138,11 @@ best_track() {
 	local -r track_type=${1:?} video=${2:?}
 	local -r tracks=$(probe_tracks "$video" | filter_tracks "$track_type" | cut -f1-3)
 	local track_num track_lang track_title
-
-	while IFS=$'\t' read -r track_num track_lang track_title; do
-		printf -- '%d\t%d\n' "$track_num" "$(guess_track_priority "$track_lang" "$track_title")"
-	done <<<"$tracks" | sort --stable -g -k 2 -t $'\t' | cut -f1 | head -1
+	if [[ -n $tracks ]]; then
+		while IFS=$'\t' read -r track_num track_lang track_title; do
+			printf -- '%d\t%d\n' "$track_num" "$(guess_track_priority "$track_lang" "$track_title")"
+		done <<<"$tracks" | sort --stable -g -k 2 -t $'\t' | cut -f1 | head -1
+	fi
 }
 
 find_recent_files() {
