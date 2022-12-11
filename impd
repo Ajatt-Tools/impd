@@ -103,20 +103,45 @@ filter_tracks() {
 	awk "-vMATCH=^$1" -F '\t' '$4 ~ MATCH'
 }
 
-best_track() {
-	local -r track_type=${1:?}
-	local -r video=${2:?}
-	local -r tracks=$(probe_tracks "$video" | filter_tracks "$track_type" | cut -f1,2)
+guess_track_priority() {
+	# Sets some numeric weight for track. Used when sorting tracks.
+	local -r track_lang=${1,,} track_title=${2,,}
+	local weight=0
 
-	local lang track_num track_lang
-	while IFS= read -r lang; do
-		while IFS=$'\t' read -r track_num track_lang; do
-			if [[ $lang == "$track_lang" ]]; then
-				echo "$track_num"
-				return
-			fi
-		done <<<"$tracks"
+	# impd wants to use full subtitle tracks and avoid other tracks if possible.
+	case $track_title in
+	*full*)
+		weight=100
+		;;
+	*song* | *sign* | *caption* | *comment*)
+		weight=900
+		;;
+	*)
+		weight=500
+		;;
+	esac
+
+	# Penalize for language that is not listed as priority.
+	while IFS= read -r pref_lang; do
+		if [[ $pref_lang == "$track_lang" ]]; then
+			break
+		else
+			weight=$((weight + 1))
+		fi
 	done <<<"${langs//,/$'\n'}"
+
+	echo "$weight"
+}
+
+best_track() {
+	# Print track number of the best internal track.
+	local -r track_type=${1:?} video=${2:?}
+	local -r tracks=$(probe_tracks "$video" | filter_tracks "$track_type" | cut -f1-3)
+	local track_num track_lang track_title
+
+	while IFS=$'\t' read -r track_num track_lang track_title; do
+		printf -- '%d\t%d\n' "$track_num" "$(guess_track_priority "$track_lang" "$track_title")"
+	done <<<"$tracks" | sort --stable -g -k 2 -t $'\t' | cut -f1 | head -1
 }
 
 find_recent_files() {
