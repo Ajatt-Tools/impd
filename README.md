@@ -45,6 +45,7 @@ AUR package and skip to [Configuration](#configuration).
     ```
     $ ln -s ~/.local/share/impd/impd ~/.local/bin/impd
     ```
+   Alternatively, `cd` into the folder and run `make install`.
 
 </details>
 
