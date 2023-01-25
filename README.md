@@ -18,9 +18,16 @@ if it finds subtitles in the container or externally.
 
 ## Installation
 
+### Arch Linux and pacman-based distros
+
 Arch Linux users can install the
 [impd-git](https://aur.archlinux.org/packages/impd-git/)
 AUR package and skip to [Configuration](#configuration).
+
+### Other distros
+
+If you want to package `impd` for your distro and know how to do it,
+please create a pull request.
 
 <details>
 
