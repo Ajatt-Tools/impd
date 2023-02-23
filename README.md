@@ -112,32 +112,59 @@ The config file is sanitized and then sourced.
 ## Usage
 
 **Tip:** If you store all your immersion material in `video_dir` like me
-the only command you are going to need is `impd rotate`.
+the only command you are going to need most of the time is `impd rotate`.
 
 **Available commands:**
 
-* `add [OPTION] FILE` - Convert videos to audio and add them to Immersion pod.
-  `impd` will guess what audio and subtitles to use.
+Convert videos to audio and add them to Immersion pod.
+`impd` will guess what audio and subtitles to use:
 
-  **Options for `impd add`:**
+```
+impd add [OPTION] FILE
+```
 
-  * `-r`, `--recent` - Add files
-    modified in the last `recent_threshold` days
-    from your video directory to Immersion pod.
-  * `-s`, `--stdin` - Read filenames from stdin.
+Options for `impd add`:
 
-    If FILE is an audio file, it is added as well.
-    You can use this to add existing podcasts or audiobooks to impd.
-* `condense -i video [-o output audio] [-s subtitle file] [-t subtitle track number]` - Make condensed audio and store it in an arbitrary location.
-  This function gives more precise control than `add`.
-  If you don't specify `output audio`, the standard Immersion pod directory will be used.
-  If you specify `subtitle file`, an **external** subtitle file will be used.
-  If you specify `subtitle track number`, an **internal** subtitle track number will be used.
-  Run `impd probe FILE` to output tracks and their corresponding numbers.
-* `archive` - Move episodes older than `recent_threshold` days to the archive folder.
-* `reshuffle` - Re-add files to the playlist, shuffle them and start playing.
-* `rotate` - Archive old immersion material and make new based on videos in your video directory.
-  Equivalent to calling `impd add --recent`, `impd archive` and `impd reshuffle`.
+* `-r`, `--recent`.
+  Add all files modified in the last `recent_threshold` days
+  from your video directory to Immersion pod.
+* `-s`, `--stdin`.
+  Read filenames from stdin.
+
+If FILE is an audio file, it is added as well.
+You can use this to add existing podcasts or audiobooks to impd.
+
+Make condensed audio and store it in an arbitrary location:
+
+```
+impd condense -i video [-o output audio] [-s subtitle file] [-t subtitle track number]
+```
+
+This function gives more precise control than `add`.
+If you don't specify `output audio`, the standard Immersion pod directory will be used.
+If you specify `subtitle file`, an **external** subtitle file will be used.
+If you specify `subtitle track number`, an **internal** subtitle track number will be used.
+Run `impd probe FILE` to output tracks and their corresponding numbers.
+
+Move episodes older than `recent_threshold` days to the archive folder:
+
+```
+impd archive
+```
+
+Re-add files to the playlist, shuffle them and start playing:
+
+```
+impd reshuffle
+```
+
+Archive old immersion material and make new based on videos in your video directory:
+
+```
+impd rotate
+```
+
+Equivalent to calling `impd add --recent`, `impd archive` and `impd reshuffle`.
 
 **Global options:**
 
@@ -146,27 +173,27 @@ the only command you are going to need is `impd rotate`.
 
 ## Examples
 
-Add an arbitrary video to Immersion pod. Condense if possible.
+Add an arbitrary video to Immersion pod. Condense if possible:
 
 ```
 $ impd add -f 'video.mkv'
 ```
 
-Add all recently downloaded videos to Immersion pod. Condense if possible.
+Add all recently downloaded videos to Immersion pod. Condense if possible:
 
 ```
 $ impd add --recent
 ```
 
 Use the `find` utility to search for specific videos.
-Pipe the output to `impd`.
+Pipe the output to `impd`:
 
 ```
 $ find /mnt/videos/ | impd add --stdin
 ```
 
 Rotate.
-Archive old episodes and add newly downloaded ones.
+Archive old episodes and add newly downloaded ones:
 
 ```
 $ impd rotate
@@ -174,7 +201,7 @@ $ impd rotate
 
 **Tip:** Add `impd rotate` as a cronjob or bind it to any key in your DE, WM, sxhkd, xbindkeysrc, etc.
 
-Condense audio on demand.
+Condense audio on demand:
 
 ```
 $ impd condense -i 'video.mkv' -o 'audio.ogg' -s 'subtitles.srt'
@@ -182,28 +209,28 @@ $ impd condense -i 'video.mkv' -o 'audio.ogg' -s 'subtitles.srt'
 
 ## Miscellaneous
 
-Convert `file` to `ass` or `srt`.
+Convert `file` to `ass` or `srt`:
 
 ```
 $ impd sub_conv file.srt file.ass
 $ impd sub_conv file.ass file.srt
 ```
 
-Extract audio from video without condensing.
+Extract audio from video without condensing:
 
 ```
 $ impd extract_audio 'video.mkv' audio.ogg
 ```
 
 Extract internal subtitles.
-Format is guessed based on extension.
+Format is guessed based on extension:
 
 ```
 $ impd extract_subtitles 'video.mkv' subtitles.srt
 $ impd extract_subtitles 'video.mkv' subtitles.ass
 ```
 
-Extract subtitles from all videos in a folder.
+Extract subtitles from all videos in a folder:
 
 ```
 for video in ./*.mkv; do
@@ -211,13 +238,13 @@ for video in ./*.mkv; do
 done
 ```
 
-Print video, audio and subtitle tracks available in the container.
+Print video, audio and subtitle tracks available in the container:
 
 ```
 $ impd probe 'video.mkv'
 ```
 
-Add an arbitrary audio to Immersion pod.
+Add an arbitrary audio to Immersion pod:
 
 ```
 $ impd add ~/podcast.mp3
