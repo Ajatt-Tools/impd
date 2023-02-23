@@ -622,7 +622,7 @@ add_notify() {
 		*youtu*be* | *"/watch?v="*)
 			local -r func=add_yt
 			;;
-		*.mp3 | *.ogg | *.wav | *.m4a | *.wma | *.mkv | *.mp4 | *.avi | *.flv | *.m4v)
+		*.mp3 | *.opus | *.ogg | *.wav | *.m4a | *.wma | *.mkv | *.mp4 | *.avi | *.flv | *.m4v | *.webm)
 			local -r func=add_remote
 			;;
 		esac
