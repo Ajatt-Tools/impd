@@ -604,15 +604,19 @@ add_remote() {
 	rm -rf -- "$job_dir"
 }
 
+mime_type() {
+	file -b --mime-type -- "${1:?No file passed.}"
+}
+
+is_media() {
+	[[ $(mime_type "$1") =~ ^(video|audio)\/.+ ]]
+}
+
 add_notify() {
 	local -r source_file=${1:?}
 
-	if [[ -f $source_file ]]; then
-		case $(file -b --mime-type -- "$source_file") in
-		video/* | audio/*)
-			local -r func=add_file
-			;;
-		esac
+	if [[ -f $source_file ]] && is_media "$source_file"; then
+		local -r func=add_file
 	elif [[ $source_file == http*//* ]]; then
 		case $source_file in
 		*youtu*be* | *"/watch?v="*)
@@ -667,10 +671,6 @@ add() {
 	done
 }
 
-is_video() {
-	[[ $(file -b --mime-type -- "${1:?No file passed.}") == video/* ]]
-}
-
 add_stdin() {
 	if [[ -n ${1-} ]]; then
 		local -r sep=$'\0'
@@ -678,7 +678,7 @@ add_stdin() {
 		local -r sep=$'\n'
 	fi
 	while IFS= read -r -d "$sep" file; do
-		if grep -Pqv "$filename_skip_pattern" <<<"$file" && is_video "$file"; then
+		if grep -Pqv "$filename_skip_pattern" <<<"$file" && is_media "$file"; then
 			add_notify "$file"
 		fi
 	done
@@ -716,7 +716,7 @@ add_yt() {
 	download_yt -o "$job_dir/%(uploader)s - %(title)s.%(ext)s" "$source_url"
 
 	for file in "$job_dir"/*; do
-		if [[ $(file -b --mime-type -- "$file") == audio/* ]]; then
+		if [[ $(mime_type "$file") == audio/* ]]; then
 			add_file "$file" || true
 		fi
 	done
