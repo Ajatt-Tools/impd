@@ -95,7 +95,7 @@ Can be used to skip openings and endings by matching lines like `♪〜`.
 **Example config file:**
 
 ```
-langs=jpn,eng,rus,ukr,fre,spa,ger,por,ita,ara,dut
+langs=japanese,jpn,jp,ja,english,eng,en,rus,ukr,fre,spa,ger,por,ita,ara,dut
 prefer_internal_subs=yes
 video_dir=~/Videos/ongoing
 bitrate=32k
@@ -120,7 +120,7 @@ Convert videos to audio and add them to Immersion pod.
 `impd` will guess what audio and subtitles to use:
 
 ```
-impd add [OPTION] FILE
+$ impd add [OPTION] FILE
 ```
 
 Options for `impd add`:
@@ -137,7 +137,7 @@ You can use this to add existing podcasts or audiobooks to impd.
 Make condensed audio and store it in an arbitrary location:
 
 ```
-impd condense -i video [-o output audio] [-s subtitle file] [-t subtitle track number]
+$ impd condense -i video [-o output audio] [-s subtitle file] [-t subtitle track number]
 ```
 
 This function gives more precise control than `add`.
@@ -149,27 +149,29 @@ Run `impd probe FILE` to output tracks and their corresponding numbers.
 Move episodes older than `recent_threshold` days to the archive folder:
 
 ```
-impd archive
+$ impd archive
 ```
 
 Re-add files to the playlist, shuffle them and start playing:
 
 ```
-impd reshuffle
+$ impd reshuffle
 ```
 
 Archive old immersion material and make new based on videos in your video directory:
 
 ```
-impd rotate
+$ impd rotate
 ```
 
 Equivalent to calling `impd add --recent`, `impd archive` and `impd reshuffle`.
 
 **Global options:**
 
-* `-f`, `--force` - Overwrite existing files.
-* `-n`, `--no-condense` - Don't condense audio.
+* `-f`, `--force`.
+  Overwrite existing files.
+* `-n`, `--no-condense`.
+  Don't condense audio.
 
 ## Examples
 
