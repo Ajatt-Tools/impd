@@ -103,6 +103,11 @@ filter_tracks() {
 	awk "-vMATCH=^$1" -F '\t' '$4 ~ MATCH'
 }
 
+preferred_languages() {
+	local pref_langs=${langs,,}
+	echo "${pref_langs//,/$'\n'}"
+}
+
 guess_track_priority() {
 	# Sets some numeric weight for track. Used when sorting tracks.
 	local -r track_lang=${1,,} track_title=${2,,}
@@ -123,12 +128,21 @@ guess_track_priority() {
 
 	# Penalize for language that is not listed as priority.
 	while IFS= read -r pref_lang; do
-		if [[ $pref_lang == "$track_lang" ]]; then
+		if [[ $track_lang == "$pref_lang" ]]; then
+			break
+		else
+			weight=$((weight + 10))
+		fi
+	done <<<"$(preferred_languages)"
+
+	# Try the same with title in case the container specifies languages there.
+	while IFS= read -r pref_lang; do
+		if [[ $track_title == *"$pref_lang"* ]]; then
 			break
 		else
 			weight=$((weight + 1))
 		fi
-	done <<<"${langs//,/$'\n'}"
+	done <<<"$(preferred_languages)"
 
 	echo "$weight"
 }
@@ -852,7 +866,7 @@ read_config_file() {
 }
 
 set_config_defaults() {
-	readonly langs=${langs:-jpn,eng,rus,ukr}
+	readonly langs=${langs:-japanese,jpn,jp,ja,english,eng,en,russian,rus,ru}
 	readonly prefer_internal_subs=${prefer_internal_subs:-yes}
 	readonly video_dir=${video_dir:-~/Videos/ongoing}
 	readonly music_dir=${music_dir:-}
