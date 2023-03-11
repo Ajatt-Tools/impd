@@ -819,33 +819,38 @@ set_impd_dir() {
 
 echo_help() {
 	local -r bn=$(basename -- "$0")
+
+	echo "Usage: $bn [OPTION] ACTION FILE"
+	echo
+	echo "Manage passive immersion. Create condensed audio."
+	echo
+	echo "Options:"
+	column -t -s'|' <<-EOF
+		  -f, --force|overwrite existing files
+		  -n, --no-condense|don't condense audio
+			  add [OPTION] FILE|add files to Immersion pod
+			  condense [OPTION]|condense a video
+			  archive|move episodes older than *recent_threshold* days to the archive folder
+			  reshuffle|re-add files to the playlist, shuffle them and start playing
+			  probe FILE|print streams in FILE
+			  rotate|same as calling $bn add -r, $bn archive, $bn reshuffle
+	EOF
+	echo
+	echo "Add options:"
+	column -t -s'|' <<-EOF
+		  -r, --recent|add new files from your video directory to Immersion pod
+		  -s, --stdin|read filenames from stdin
+	EOF
+	echo
+	echo "Condense options:"
+	column -t -s'|' <<-EOF
+		  -i|input file
+		  -o|optional output file
+		  -s|optional subtitle file
+		  -t|optional subtitle track number, if internal subtitles should be used
+	EOF
+	echo
 	cat <<-EOF
-		Usage: $bn [OPTION] ACTION FILE
-
-		Manage passive immersion. Create condensed audio.
-
-		Full documentation https://github.com/Ajatt-Tools/impd
-
-		Options:
-		  -f, --force            overwrite existing files
-		  -n, --no-condense      don't condense audio
-		      add [OPTION] FILE  add files to Immersion pod
-		      condense [OPTION]  condense a video
-		      archive            move episodes older than *recent_threshold* days to the archive folder
-		      reshuffle          re-add files to the playlist, shuffle them and start playing
-		      probe FILE         print streams in FILE
-		      rotate             same as calling $bn add -r, $bn archive, $bn reshuffle
-
-		Add options:
-		  -r, --recent  add new files from your video directory to Immersion pod
-		  -s, --stdin   read filenames from stdin
-
-		Condense options:
-		  -i  input file
-		  -o  optional output file
-		  -s  optional subtitle file
-		  -t  optional subtitle track number, if internal subtitles should be used
-
 		Files:
 		  \$XDG_CONFIG_HOME/$program/config  User configuration file (usually ~/.config/$program/config).
 
@@ -854,7 +859,8 @@ echo_help() {
 		  $bn rotate    rotate immersion files
 		  find /mnt/videos/ -type f | $bn add --stdin    add all files piped from stdin
 
-		Report bugs to https://matrix.to/#/#djtspace:g33k.se
+		Full documentation https://github.com/Ajatt-Tools/impd
+		Report bugs to https://matrix.to/#/#djtspace:midov.pl
 	EOF
 }
 
