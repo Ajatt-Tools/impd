@@ -253,6 +253,12 @@ extract_audio() {
 		return 1
 	fi
 
+	if is_ogg_audio "$input"; then
+		echo "File $(basename -- "$input") appears to be an ogg audio file. Copying as is."
+		cp -- "$input" "$output"
+		return
+	fi
+
 	echo "Extracting track #${track_num:-auto} (audio) from $(basename -- "$input")..."
 	ffmpeg -nostdin \
 		-loglevel error \
@@ -624,6 +630,10 @@ mime_type() {
 
 is_media() {
 	[[ $(mime_type "$1") =~ ^(video|audio)\/.+ ]]
+}
+
+is_ogg_audio() {
+	[[ $(mime_type "$1") == audio/ogg ]]
 }
 
 add_notify() {
