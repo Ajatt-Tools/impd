@@ -137,13 +137,15 @@ You can use this to add existing podcasts or audiobooks to impd.
 Make condensed audio and store it in an arbitrary location:
 
 ```
-$ impd condense -i video [-o output audio] [-s subtitle file] [-t subtitle track number]
+$ impd condense -i video [-o output audio] [-s subtitle file] [-t subtitle track number] [-a audio track number]
 ```
 
 This function gives more precise control than `add`.
 If you don't specify `output audio`, the standard Immersion pod directory will be used.
 If you specify `subtitle file`, an **external** subtitle file will be used.
 If you specify `subtitle track number`, an **internal** subtitle track number will be used.
+If you specify `audio track number`, the audio track will be set according to the number instead of being guessed based on the video's metadata.
+
 Run `impd probe FILE` to output tracks and their corresponding numbers.
 
 Move episodes older than `recent_threshold` days to the archive folder:
