@@ -46,13 +46,12 @@ please create a pull request.
 
 2) Clone the repo
     ```
-    $ git clone 'https://github.com/Ajatt-Tools/impd.git' ~/.local/share/impd
+    $ git clone 'https://github.com/Ajatt-Tools/impd.git'
     ```
-3) Link the `impd` executable somewhere in your `PATH`
+3) `cd` into the folder and run `make install`.
     ```
-    $ ln -s ~/.local/share/impd/impd ~/.local/bin/impd
+    $ cd impd && sudo make install
     ```
-   Alternatively, `cd` into the folder and run `make install`.
 
 </details>
 
