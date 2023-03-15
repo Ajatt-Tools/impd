@@ -242,7 +242,7 @@ check_output() {
 extract_audio() {
 	local -r input=$(readlink -f -- "${1:?}")
 	local -r output=$(readlink -f -- "${2:-$immersionpod_dir/$current/$(basename -- "${input%.*}").ogg}")
-	local -r track_num=$(best_track a "$input")
+	local -r track_num=${3:-$(best_track a "$input")}
 
 	if ! check_output; then
 		return 1
@@ -525,7 +525,9 @@ make_condensed() {
 
 	local -r subs_out=$job_dir/$base.srt
 	local -r subs_external=$(readlink -f -- "${3:-$(find_external_subtitles "$video")}")
+
 	local -r subs_track_num=${4-}
+	local -r audio_track_num=${5-}
 
 	__make_condensed() {
 		if ! check_output; then
@@ -537,7 +539,7 @@ make_condensed() {
 			return 1
 		fi
 
-		if [[ ! -f $temp_audio ]] && ! extract_audio "$video" "$temp_audio"; then
+		if [[ ! -f $temp_audio ]] && ! extract_audio "$video" "$temp_audio" "$audio_track_num"; then
 			return 1
 		fi
 
@@ -565,10 +567,15 @@ make_condensed() {
 
 condense() {
 	if [[ -z $* ]]; then
-		echo "Usage: $(basename -- "$0") condense -i INPUT -s [SUBTITLES FILE] -o [OUTPUT FILE] -t [SUBTITLE TRACK NUMBER]"
+		echo -n "Usage: $(basename -- "$0") condense "
+		echo -n "-i INPUT "
+		echo -n "-s [SUBTITLES FILE] "
+		echo -n "-o [OUTPUT FILE] "
+		echo -n "-t [SUBTITLE TRACK NUMBER] "
+		echo "-a [AUDIO TRACK NUMBER] "
 		return 1
 	fi
-	while getopts 'i: s: o: t:' flag; do
+	while getopts 'i: s: o: t: a:' flag; do
 		case $flag in
 		i)
 			local -r input=${OPTARG}
@@ -583,13 +590,21 @@ condense() {
 		t)
 			local -r subs_track_num=${OPTARG}
 			;;
+		a)
+			local -r audio_track_num=${OPTARG}
+			;;
 		*)
 			echo "Unknown argument." && exit 1
 			;;
 		esac
 	done
 	unset flag
-	make_condensed "${input:?Input video file is not set.}" "${output-}" "${subtitles-}" "${subs_track_num-}"
+	make_condensed \
+		"${input:?Input video file is not set.}" \
+		"${output-}" \
+		"${subtitles-}" \
+		"${subs_track_num-}" \
+		"${audio_track_num-}"
 }
 
 notify_send() {
