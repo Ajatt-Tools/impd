@@ -752,7 +752,7 @@ add_yt() {
 	local -r source_url=${1:?}
 	local -r job_dir=$(mktemp -d --tmpdir="$tmp_dir" -t "youtube-dl.job-XXXX")
 
-	download_yt -o "$job_dir/%(uploader)s - %(title)s.%(ext)s" "$source_url"
+	download_yt -o "$job_dir/%(uploader)s - %(title).60s.%(ext)s" "$source_url"
 
 	for file in "$job_dir"/*; do
 		if [[ $(mime_type "$file") == audio/* ]]; then
