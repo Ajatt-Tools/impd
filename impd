@@ -478,16 +478,20 @@ fetch_video_subtitles() {
 add_metadata() {
 	local -r input=${1:?}
 	local -r output=${2:?}
+	local -r title=$(fetch_title "$input")
 
 	ffmpeg -nostdin \
 		-hide_banner \
 		-loglevel error \
 		-vn \
 		-sn \
+		-dn \
 		"-${global_overwrite:-n}" \
 		-i "$input" \
 		-c copy \
-		-metadata title="$(fetch_title "$input")" \
+		-map_metadata -1 \
+		-metadata title="$title" \
+		-metadata:s:a:0 title="$title" \
 		-metadata artist="impd" \
 		-metadata album="impd-$(date '+%Y-%V')" \
 		-metadata date="$(date '+%Y')" \
