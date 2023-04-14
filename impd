@@ -174,18 +174,38 @@ find_outdated_audio() {
 
 fetch_title() {
 	local -r input=${1:?Path to video file is not set.}
-	strip() {
-		sed -e 's/_/ /g' \
-			-e 's/fansub\|vostfr\|10bits\|BluRay\|x26[45]\|AAC\|flac//gi' \
-			-Ee 's/[0-9]{3,4}[pP]//g' \
-			-Ee 's/(\[|\()[^])]*(\]|\))//g' \
-			-e 's/^[ -]*//; s/[- ]*$//' \
-			-Ee 's/ +/ /g'
-	}
+	local temp=""
+
 	print_name() {
 		basename -- "${input%.*}"
 	}
-	print_name | strip
+	strip_garbage() {
+		sed -E \
+			-e 's,[_\.], ,g' \
+			-e 's,fansub|vostfr|10bits|Blu.?Ray|BDRip|x26[45]|AAC|flac|\w+-Raws, ,gi' \
+			-e 's|[0-9]{3,4}[pP]||g' \
+			-e 's,^[ -]*,,' \
+			-e 's,[- ]*$,,' \
+			-e 's, +, ,g'
+	}
+	remove_brackets() {
+		sed -E \
+			-e 's,(\[|\()[^])]*(\]|\)),,g'
+	}
+	replace_brackets() {
+		sed -E \
+			-e 's,(\[|\]|\(|\)), ,g'
+	}
+	strip() {
+		sed -E \
+			-e 's,(^[ _-]*|[ _-]*$),,g'
+	}
+
+	if [[ -n ${temp:=$(print_name | remove_brackets | strip_garbage | strip)} ]]; then
+		echo "$temp"
+	else
+		print_name | replace_brackets | strip_garbage | strip
+	fi
 }
 
 fetch_episode_number() {
