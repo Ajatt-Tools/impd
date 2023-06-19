@@ -894,9 +894,13 @@ echo_help() {
 		  \$XDG_CONFIG_HOME/$program/config  User configuration file (usually ~/.config/$program/config).
 
 		Examples:
-		  $bn add -f 'video.mkv'    force-add a file
-		  $bn rotate    rotate immersion files
-		  find /mnt/videos/ -type f | $bn add --stdin    add all files piped from stdin
+	EOF
+	column -t -s'・' <<-EOF
+		  $bn add -f 'video.mkv'・force-add a file
+		  $bn rotate・rotate immersion files
+		  find /mnt/videos/ -type f | $bn add --stdin・add all files piped from stdin
+	EOF
+	cat <<-EOF
 
 		Full documentation https://github.com/Ajatt-Tools/impd
 		Report bugs to https://matrix.to/#/#djtspace:midov.pl
