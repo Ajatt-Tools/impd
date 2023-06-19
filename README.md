@@ -110,7 +110,7 @@ The config file is sanitized and then sourced.
 
 ## Usage
 
-**Tip:** If you store all your immersion material in `video_dir` like me
+**Tip:** If you store all your immersion material in `video_dir` like me,
 the only command you are going to need most of the time is `impd rotate`.
 
 **Available commands:**
