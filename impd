@@ -932,7 +932,7 @@ set_config_defaults() {
 	readonly bitrate=${bitrate:-32k}
 	readonly recent_threshold=${recent_threshold:-10}
 	readonly padding=${padding:-0.2}
-	readonly line_skip_pattern=${line_skip_pattern:-"^♪?〜♪?$|^・～$|.*{\\be1}.*"}
+	readonly line_skip_pattern=${line_skip_pattern:-"^♬〜$|^♪?〜♪?$|^・～$|.*{\\be1}.*"}
 	readonly filename_skip_pattern=${filename_skip_pattern:-"NCOP|NCED"}
 	readonly -a extract_audio_add_args
 }
