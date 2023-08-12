@@ -887,6 +887,7 @@ echo_help() {
 		  -o|optional output file
 		  -s|optional subtitle file
 		  -t|optional subtitle track number, if internal subtitles should be used
+		  -a|optional audio track number
 	EOF
 	echo
 	cat <<-EOF
