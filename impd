@@ -99,7 +99,9 @@ probe() {
 }
 
 filter_tracks() {
-	# Filters output from probe_tracks
+	# Filters output from the probe_tracks() function.
+	# Input format: index,lang,title,type
+	# Params: $1 = track type ('s' or 'a')
 	awk "-vMATCH=^$1" -F '\t' '$4 ~ MATCH'
 }
 
