@@ -120,7 +120,7 @@ guess_track_priority() {
 	*full*)
 		weight=100
 		;;
-	*song* | *sign* | *caption* | *comment*)
+	*song* | *sign* | *caption* | *comment* | *forced*)
 		weight=900
 		;;
 	*)
