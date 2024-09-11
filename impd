@@ -736,6 +736,11 @@ add() {
 	done
 }
 
+file_can_be_added() {
+	local -r file=$1
+	grep -Pqv "$filename_skip_pattern" <<<"$file" && is_media "$file"
+}
+
 add_stdin() {
 	if [[ -n ${1-} ]]; then
 		local -r sep=$'\0'
@@ -743,7 +748,7 @@ add_stdin() {
 		local -r sep=$'\n'
 	fi
 	while IFS= read -r -d "$sep" file; do
-		if grep -Pqv "$filename_skip_pattern" <<<"$file" && is_media "$file"; then
+		if file_can_be_added "$file"; then
 			add_notify "$file"
 		fi
 	done
@@ -751,6 +756,16 @@ add_stdin() {
 
 add_recent() {
 	find_recent_files -0 | add_stdin -0
+}
+
+recents() {
+	# alias for cli usage, e.g. `impd recents` will print candidates
+	# to be added to the immersionpod folder
+	find_recent_files -0 | while IFS= read -r -d $'\0' file; do
+		if file_can_be_added "$file"; then
+			echo "$file"
+		fi
+	done
 }
 
 download_yt() {
@@ -873,6 +888,7 @@ echo_help() {
 	column -t -s'|' <<-EOF
 		  -f, --force|overwrite existing files
 		  -n, --no-condense|don't condense audio
+		  -t, --recent-threshold NUMBER|override the recent_threshold config option
 			  add [OPTION] FILE|add files to Immersion pod
 			  condense [OPTION]|condense a video
 			  archive|move episodes older than *recent_threshold* days to the archive folder
@@ -954,20 +970,29 @@ ensure_dirs() {
 main() {
 	# Load configuration file, then apply settings omitted in the config file.
 	read_config_file
-	set_config_defaults
-	set_impd_dir
-	ensure_dirs
 
 	# Process global arguments
 	local -a opt_rest=()
-	for arg; do
-		case $arg in
+	while (($# > 0)); do
+		case $1 in
 		-n | --no-condense) readonly global_no_condense='y' ;;
 		-f | --force) readonly global_overwrite='y' ;;
-		*) opt_rest+=("$arg") ;;
+		-t | --recent-threshold)
+			# override recent threshold temporarily without editing the config file.
+			# this can be used to add more older files to immersionpod than normally.
+			recent_threshold=${2:-$recent_threshold}
+			shift
+			;;
+		*) opt_rest+=("$1") ;;
 		esac
+		shift
 	done
 	unset arg
+
+	# set config variables readonly. they can't be changed from this point onwards.
+	set_config_defaults
+	set_impd_dir
+	ensure_dirs
 
 	case ${opt_rest[*]} in
 	'' | -h | --help) echo_help ;;

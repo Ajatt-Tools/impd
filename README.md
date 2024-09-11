@@ -113,7 +113,7 @@ The config file is sanitized and then sourced.
 **Tip:** If you store all your immersion material in `video_dir` like me,
 the only command you are going to need most of the time is `impd rotate`.
 
-**Available commands:**
+### Add
 
 Convert videos to audio and add them to Immersion pod.
 `impd` will guess what audio and subtitles to use:
@@ -133,6 +133,30 @@ Options for `impd add`:
 If FILE is an audio file, it is added as well.
 You can use this to add existing podcasts or audiobooks to impd.
 
+Add all files more recent than 20 days:
+
+```
+$ impd add --recent --recent-threshold 20
+$ impd add -r -t 20
+```
+
+### Recents
+
+Print files that will be added if `impd rotate` is run.
+
+```
+$ impd recents
+```
+
+Adjust number of days to look back.
+
+```
+$ impd recents -t DAYS
+$ impd recents -t 20
+```
+
+### Condense
+
 Make condensed audio and store it in an arbitrary location:
 
 ```
@@ -145,7 +169,9 @@ If you specify `subtitle file`, an **external** subtitle file will be used.
 If you specify `subtitle track number`, an **internal** subtitle track number will be used.
 If you specify `audio track number`, the audio track will be set according to the number instead of being guessed based on the video's metadata.
 
-Run `impd probe FILE` to output tracks and their corresponding numbers.
+Note: Run `impd probe FILE` to output tracks and their corresponding numbers.
+
+### Archive
 
 Move episodes older than `recent_threshold` days to the archive folder:
 
@@ -153,11 +179,15 @@ Move episodes older than `recent_threshold` days to the archive folder:
 $ impd archive
 ```
 
+## Reshuffle
+
 Re-add files to the playlist, shuffle them and start playing:
 
 ```
 $ impd reshuffle
 ```
+
+### Rotate
 
 Archive old immersion material and make new based on videos in your video directory:
 
@@ -167,12 +197,16 @@ $ impd rotate
 
 Equivalent to calling `impd add --recent`, `impd archive` and `impd reshuffle`.
 
-**Global options:**
+### Global options
+
+Global options work with any command.
 
 * `-f`, `--force`.
   Overwrite existing files.
 * `-n`, `--no-condense`.
   Don't condense audio.
+* `-t`, `--recent-threshold` NUMBER.
+  Override the `recent_threshold` config option temporarily.
 
 ## Examples
 
