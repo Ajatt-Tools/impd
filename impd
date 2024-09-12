@@ -846,6 +846,18 @@ rotate() {
 	reshuffle
 }
 
+mkplaylist() {
+	local -r m3u_path=$immersionpod_dir/$current/impd.m3u
+
+	find "$immersionpod_dir/$current" \
+		-type f \
+		-printf '%P\n' \
+		-regextype posix-extended \
+		-iregex '.*\.(mp3|opus|ogg|m4a|wav|wma)$' |
+		shuf > "$m3u_path"
+	echo "created file '$m3u_path'"
+}
+
 grep_mpd_dir() {
 	# https://wiki.archlinux.org/index.php/Music_Player_Daemon#Configuration
 	grep -Pos 'music_directory\s*"?\K[^"]*(?="?)' -- ~/.config/mpd/mpd.conf
