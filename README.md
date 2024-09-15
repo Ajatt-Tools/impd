@@ -179,7 +179,7 @@ Move episodes older than `recent_threshold` days to the archive folder:
 $ impd archive
 ```
 
-## Reshuffle
+### Reshuffle
 
 Re-add files to the playlist, shuffle them and start playing:
 
@@ -196,6 +196,21 @@ $ impd rotate
 ```
 
 Equivalent to calling `impd add --recent`, `impd archive` and `impd reshuffle`.
+
+### Generate playlist
+
+Create a playlist file named `impd.m3u`
+in the `immersionpod/current` folder.
+
+
+```
+$ impd mkplaylist
+```
+
+`m3u` playlists are not needed to immerse by using `mpd`
+but they might be necessary when using a different audio player,
+for example,
+on an Android device.
 
 ### Global options
 
