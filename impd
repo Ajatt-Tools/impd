@@ -374,7 +374,7 @@ sub_conv() {
 }
 
 parse_speech_fragments() {
-	awk -F' --> ' -vPADDING="$padding" -vSRT_TIMING_PATTERN="$srt_timing_pattern" '
+	LC_NUMERIC=C awk -F' --> ' -vPADDING="$padding" -vSRT_TIMING_PATTERN="$srt_timing_pattern" '
 	function time_parts_to_seconds(hours, mins, secs) {
 		return hours * 3600.0 + mins * 60.0 + secs
 	}
