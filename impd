@@ -374,6 +374,8 @@ sub_conv() {
 }
 
 parse_speech_fragments() {
+	# Note: The function incorrectly parses timestamps on certain locales on certain systems,
+	# such as sv_SE.UTF-8 on Tuxedo OS. Force the C locale to fix it.
 	LC_NUMERIC=C awk -F' --> ' -vPADDING="$padding" -vSRT_TIMING_PATTERN="$srt_timing_pattern" '
 	function time_parts_to_seconds(hours, mins, secs) {
 		return hours * 3600.0 + mins * 60.0 + secs
