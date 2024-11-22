@@ -940,7 +940,7 @@ echo_help() {
 	cat <<-EOF
 
 		Full documentation https://github.com/Ajatt-Tools/impd
-		Report bugs to https://matrix.to/#/#djtspace:midov.pl
+		Report bugs to https://tatsumoto.neocities.org/blog/join-our-community
 	EOF
 }
 
