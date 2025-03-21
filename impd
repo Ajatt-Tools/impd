@@ -214,6 +214,7 @@ fetch_episode_number() {
 	local -r file=${1:?}
 	{
 		echo 01
+		grep -Pio '\[\K\d+(?=\])' <<<"${file%.*}"
 		sed \
 			-Ee 's/(\[|\()[^])]*(\]|\))//g' \
 			-Ee 's/[0-9]{3,4}[pP]//g' \
