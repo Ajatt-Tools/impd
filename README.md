@@ -53,6 +53,13 @@ please create a pull request.
     $ cd impd && sudo make install
     ```
 
+Alternative to steps 2 and 3:
+
+```
+sudo curl -Lo /usr/local/bin/impd https://github.com/Ajatt-Tools/impd/raw/refs/heads/main/impd
+sudo chmod 755 /usr/local/bin/impd
+```
+
 </details>
 
 ## Configuration
