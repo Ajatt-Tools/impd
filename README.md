@@ -327,6 +327,12 @@ macro i set browser "tsp impd add" ; open-in-browser ; set browser firefox -- "A
 Next time you open Newsboat,
 you'll be able to press the macro-prefix (usually `,`) followed by `i` to call `impd add`.
 
+Print title of a video:
+
+```
+$ impd fetch_title 'video.mkv'
+```
+
 ## Condensing
 
 For condensing to work the video files passed to `impd` should have embedded subtitles
