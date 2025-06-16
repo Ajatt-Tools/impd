@@ -308,7 +308,8 @@ filename_to_compatible() {
 		-e 's,[\ / " ` < > : | ? *], ,g' \
 		-e "s,', ,g" \
 		-e 's,^\s+,,' \
-		-e 's,\s+$,,' <<< "${1:?Filename not set.}"
+		-e 's,\s+$,,' \
+		-e 's,\s+, ,g' <<< "${1:?Filename not set.}"
 }
 
 make_uncondensed() {
