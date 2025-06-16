@@ -196,6 +196,11 @@ fill_converted_map() {
 }
 
 fetch_title() {
+	if [[ -z $* ]]; then
+		echo "Usage: ${0##*/} fetch_title FILE"
+		return 1
+	fi
+
 	local -r input=${1:?Path to video file is not set.}
 	local temp=""
 
@@ -392,6 +397,11 @@ make_chunk() {
 }
 
 find_external_subtitles() {
+	if [[ -z $* ]]; then
+		echo "Usage: ${0##*/} find_external_subtitles FILE"
+		return 1
+	fi
+
 	escape_square_brackets() { sed 's|\[|\\\[|g; s|\]|\\\]|g'; }
 	local -r video=${1:?}
 	local -r dir=$(dirname -- "$video")
