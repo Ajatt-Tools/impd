@@ -89,7 +89,7 @@ probe_tracks() {
 
 probe() {
 	if [[ -z $* ]]; then
-		echo "Usage: $(basename -- "$0") probe FILE"
+		echo "Usage: ${0##*/} probe FILE"
 		return 1
 	fi
 
@@ -205,7 +205,8 @@ fetch_title() {
 	local temp=""
 
 	print_name() {
-		basename -- "${input%.*}"
+		local -r name=${input%.*}
+		echo "${name##*/}"
 	}
 	strip_garbage() {
 		sed -E \
@@ -252,11 +253,13 @@ fetch_episode_number() {
 }
 
 extract_subtitles() {
-	local -r input=${1:?}
-	local -r output=${2:?}
-	local -r track_num=${3:-$(best_track s "$input")}
+	local input="${1:?Input path not set.}"
+	local output="${2:?Output path not set.}"
+	local -r input=$(  readlink -f -- "$input"  )
+	local -r output=$(  readlink -f -- "$output"  )
+	local -r track_num=${3:-$(  best_track s "$input"  )}
 
-	echo "Extracting track #${track_num:-auto} (subtitles) from $(basename -- "$input")..."
+	echo "Extracting track #${track_num:-auto} (subtitles) from ${input##*/}..."
 	ffmpeg -nostdin \
 		-loglevel error \
 		-hide_banner \
@@ -316,12 +319,12 @@ extract_audio() {
 	fi
 
 	if is_ogg_audio "$input"; then
-		echo "File $(basename -- "$input") appears to be an ogg audio file. Copying as is."
+		echo "File ${input##*/} appears to be an ogg audio file. Copying as is."
 		cp -- "$input" "$output"
 		return
 	fi
 
-	echo "Extracting track #${track_num:-auto} (audio) from $(basename -- "$input")..."
+	echo "Extracting track #${track_num:-auto} (audio) from ${input##*/}..."
 	ffmpeg -nostdin \
 		-loglevel error \
 		-hide_banner \
@@ -403,9 +406,20 @@ find_external_subtitles() {
 	fi
 
 	escape_square_brackets() { sed 's|\[|\\\[|g; s|\]|\\\]|g'; }
-	local -r video=${1:?}
-	local -r dir=$(dirname -- "$video")
-	local -r base=$(basename -- "${video%.*}" | escape_square_brackets)
+
+	local video=${1:?Video path not set.}
+	local -r video=$(readlink -f -- "$video")
+
+	local -r dir=${video%/*} # remove last component
+
+	local base=${video%.*} # remove extension
+	local -r base=$(escape_square_brackets <<< "${base##*/}") # adapt name
+
+	if [[ -z $dir ]] || [[ ! -d $dir ]]; then
+		echo "Error: video directory '$dir' is invalid." >&2
+		exit 1
+	fi
+
 	find "$dir" -maxdepth 5 -type f \( -name "$base*.srt" -or -name "$base*.ass" \) | head -1
 }
 
@@ -539,7 +553,7 @@ fetch_video_subtitles() {
 		else
 			echo "Failed to extract internal subtitles."
 			if [[ -f $subs_ext ]]; then
-				echo "External subtitle file '$(basename -- "$subs_ext")' will be used."
+				echo "External subtitle file '${subs_ext##*/}' will be used."
 				sub_conv "$subs_ext" "$subs_out"
 			else
 				return 1
@@ -547,7 +561,7 @@ fetch_video_subtitles() {
 		fi
 	else
 		if [[ -f $subs_ext ]]; then
-			echo "External subtitle file '$(basename -- "$subs_ext")' will be used."
+			echo "External subtitle file '${subs_ext##*/}' will be used."
 			sub_conv "$subs_ext" "$subs_out"
 		else
 			if [[ -f "$subs_out" ]] || extract_subtitles "$video" "$subs_out" "$track_num"; then
@@ -613,7 +627,7 @@ make_condensed() {
 	local -r chunks_file=$job_dir/chunks.list
 
 	local -r subs_out=$job_dir/$base.srt
-	local -r subs_external=$(readlink -f -- "${3:-$(find_external_subtitles "$video")}")
+	local -r subs_external=$(readlink -f -- "${3:-$(  find_external_subtitles "$video"  )}")
 
 	local -r subs_track_num=${4-}
 	local -r audio_track_num=${5-}
@@ -633,7 +647,7 @@ make_condensed() {
 		fi
 
 		if ! fetch_video_subtitles "$video" "$subs_external" "$subs_out" "$subs_track_num"; then
-			echo "File '$(basename -- "$temp_audio")' will be added without condensing."
+			echo "File '${temp_audio##*/}' will be added without condensing."
 			add_metadata "$temp_audio" "$output"
 			return
 		fi
@@ -656,7 +670,7 @@ make_condensed() {
 
 condense() {
 	if [[ -z $* ]]; then
-		echo -n "Usage: $(basename -- "$0") condense "
+		echo -n "Usage: ${0##*/} condense "
 		echo -n "-i INPUT "
 		echo -n "-s [SUBTITLES FILE] "
 		echo -n "-o [OUTPUT FILE] "
@@ -762,13 +776,13 @@ add_notify() {
 	fi
 
 	if "${func:?}" "$source_file"; then
-		notify_send "$(basename -- "$source_file") has been added."
+		notify_send "${source_file##*/} has been added."
 	fi
 }
 
 add() {
 	if [[ -z $* ]]; then
-		echo "Usage: $(basename -- "$0") add [--recent] [--stdin] [FILE]"
+		echo "Usage: ${0##*/} add [--recent] [--stdin] [FILE]"
 		return 1
 	fi
 	local -a file_list=()
@@ -953,7 +967,7 @@ set_impd_dir() {
 }
 
 echo_help() {
-	local -r bn=$(basename -- "$0")
+	local -r bn=${0##*/}
 
 	echo "Usage: $bn [OPTION] ACTION FILE"
 	echo
@@ -1007,7 +1021,7 @@ echo_help() {
 
 version() {
 	cat <<-EOF
-		$(basename -- "$0") $version
+		${0##*/} $version
 		Copyright (C) 2021-2022 Ren Tatsumoto.
 		License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.
 		This is free software: you are free to change and redistribute it.
