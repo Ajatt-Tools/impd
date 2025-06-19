@@ -1051,7 +1051,7 @@ set_config_defaults() {
 
 ensure_dirs() {
 	mkdir -p -- \
-		"$(dirname -- "$config_filepath")" \
+		"${config_filepath%/*}" \
 		"$immersionpod_dir"/{$current,$archive} \
 		"$tmp_dir"
 }
