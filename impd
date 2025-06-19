@@ -355,8 +355,8 @@ filename_to_compatible() {
 
 make_output_basename() {
 	local input="${1:?Filename not set.}"
-	input=${input%.*} # remove extension
 	input=${input##*/} # remove path components
+	input=${input%.*} # remove extension
 	filename_to_compatible "$input"
 }
 
