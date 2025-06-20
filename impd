@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/bash
 #
 # Immersion Pod - Passive listening management tool
 # Copyright (C) 2021 Ren Tatsumoto. <tatsu at autistici.org>
