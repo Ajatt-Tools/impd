@@ -229,11 +229,12 @@ fetch_title() {
 
 	# Try to remove all text in brackets.
 	# If it turns out to be too aggressive, replace brackets instead.
-	local temp=$(  echo "$name" | remove_brackets | strip_garbage | strip  )
-	if [[ -z $temp ]]; then
-		temp=$(  echo "$name" | replace_brackets | strip_garbage | strip  )
+	local title
+	title=$(  echo "$name" | remove_brackets | strip_garbage | strip  )
+	if [[ -z $title ]]; then
+		title=$(  echo "$name" | replace_brackets | strip_garbage | strip  )
 	fi
-	echo "$temp"
+	echo "$title"
 }
 
 fetch_episode_number() {
