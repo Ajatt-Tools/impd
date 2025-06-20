@@ -719,7 +719,7 @@ condense() {
 		"${output-}" \
 		"${subtitles-}" \
 		"${subs_track_num-}" \
-		"${audio_track_num-}"
+		"${audio_track_num-}" || true
 }
 
 notify_send() {
