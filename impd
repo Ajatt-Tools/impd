@@ -727,6 +727,8 @@ add_file() {
 		else
 			make_uncondensed "$source_file"
 		fi
+	else
+		echo "File '$source_file' does not exist." >&2
 	fi
 }
 
