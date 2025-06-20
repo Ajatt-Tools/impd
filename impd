@@ -632,7 +632,7 @@ make_condensed() {
 	local -r subs_track_num=${4-}
 	local -r audio_track_num=${5-}
 
-	__make_condensed() {
+	_make_condensed() {
 		if ! check_output; then
 			return 1
 		fi
@@ -664,8 +664,17 @@ make_condensed() {
 		add_metadata "$temp_audio" "$output"
 	}
 
-	__make_condensed || true
-	rm -rf -- "$job_dir"
+	_cleanup() {
+		rm -rf -- "$job_dir"
+	}
+
+	if _make_condensed; then
+		_cleanup
+		return 0
+	else
+		_cleanup
+		return 1
+	fi
 }
 
 condense() {
