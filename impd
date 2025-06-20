@@ -405,22 +405,25 @@ find_external_subtitles() {
 		return 1
 	fi
 
-	escape_square_brackets() { sed 's|\[|\\\[|g; s|\]|\\\]|g'; }
-
 	local video=${1:?Video path not set.}
-	local -r video=$(readlink -f -- "$video")
-
+	video=$(  readlink -f -- "$video"  ) # convert to full path
 	local -r dir=${video%/*} # remove last component
-
-	local base=${video%.*} # remove extension
-	local -r base=$(escape_square_brackets <<< "${base##*/}") # adapt name
+	video=${video##*/} # basename
+	local -r video=${video%.*} # remove extension
 
 	if [[ -z $dir ]] || [[ ! -d $dir ]]; then
 		echo "Error: video directory '$dir' is invalid." >&2
 		exit 1
 	fi
 
-	find "$dir" -maxdepth 5 -type f \( -name "$base*.srt" -or -name "$base*.ass" \) | head -1
+	find "$dir" \
+		-maxdepth 5 \
+		-type f \
+		-regextype posix-extended \
+		-iregex '.*\.(ass|srt)$' \
+		-print0 |
+		grep -Fiz --max-count=1 "$video" |
+		tr '\0' '\n' # fix no newline at the end
 }
 
 sub_conv() {
