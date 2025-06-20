@@ -615,19 +615,19 @@ concat_audio() {
 }
 
 make_condensed() {
-	local -r video=$(readlink -f -- "${1:?}")
+	local -r video=$(  readlink -f -- "${1:?}"  )
 	local -r base=$(  make_output_basename "$video"  )
 
 	local -r job_dir=$(mktemp -d --tmpdir="$tmp_dir" -t "$base.job-XXXX")
 
 	local -r temp_audio=$job_dir/$base.ogg
-	local -r output=$(readlink -f -- "${2:-$immersionpod_dir/$current/$base.ogg}")
+	local -r output=$(  readlink -f -- "${2:-$immersionpod_dir/$current/$base.ogg}"  )
 
 	local -r chunks_dir=$(mktemp -d --tmpdir="$job_dir" -t "chunks-XXXX")
 	local -r chunks_file=$job_dir/chunks.list
 
 	local -r subs_out=$job_dir/$base.srt
-	local -r subs_external=$(readlink -f -- "${3:-$(  find_external_subtitles "$video"  )}")
+	local -r subs_external=$(  readlink -f -- "${3:-$(  find_external_subtitles "$video"  )}"  )
 
 	local -r subs_track_num=${4-}
 	local -r audio_track_num=${5-}
@@ -719,7 +719,7 @@ notify_send() {
 }
 
 add_file() {
-	local -r source_file=$(readlink -f -- "${1:?}")
+	local -r source_file=$(  readlink -f -- "${1:?Source file not set.}"  )
 
 	if [[ -f $source_file ]]; then
 		if [[ -z ${global_no_condense-} ]]; then
