@@ -305,9 +305,9 @@ check_output() {
 }
 
 extract_audio() {
-	local -r input=$(readlink -f -- "${1:?}")
-	local -r output=$(readlink -f -- "${2:-$immersionpod_dir/$current/$(  make_output_basename "$input"  ).ogg}")
-	local -r track_num=${3:-$(best_track a "$input")}
+	local -r input=$(  readlink -f -- "${1:?Input file not set.}"  )
+	local -r output=$(  readlink -f -- "${2:-$immersionpod_dir/$current/$(  make_output_basename "$input"  ).ogg}"  )
+	local -r track_num=${3:-$(  best_track a "$input"  )}
 
 	if ! check_output; then
 		return 1
