@@ -252,11 +252,18 @@ fetch_episode_number() {
 	} | tail -1
 }
 
+canonicalize() {
+	# alternative to calling 'readlink -f' but using only shell built-ins.
+	if [[ $1 == /* ]]; then
+		echo "$1"
+	else
+		echo "$PWD/$1"
+	fi
+}
+
 extract_subtitles() {
-	local input="${1:?Input path not set.}"
-	local output="${2:?Output path not set.}"
-	local -r input=$(  readlink -f -- "$input"  )
-	local -r output=$(  readlink -f -- "$output"  )
+	local -r input=$(  canonicalize "${1:?Input path not set.}"  )
+	local -r output=$(  canonicalize "${2:?Output path not set.}"  )
 	local -r track_num=${3:-$(  best_track s "$input"  )}
 
 	echo "Extracting track #${track_num:-auto} (subtitles) from ${input##*/}..."
@@ -305,8 +312,8 @@ check_output() {
 }
 
 extract_audio() {
-	local -r input=$(  readlink -f -- "${1:?Input file not set.}"  )
-	local -r output=$(  readlink -f -- "${2:-$immersionpod_dir/$current/$(  make_output_basename "$input"  ).ogg}"  )
+	local -r input=$(  canonicalize "${1:?Input file not set.}"  )
+	local -r output=$(  canonicalize "${2:-$immersionpod_dir/$current/$(  make_output_basename "$input"  ).ogg}"  )
 	local -r track_num=${3:-$(  best_track a "$input"  )}
 
 	if ! check_output; then
@@ -405,8 +412,7 @@ find_external_subtitles() {
 		return 1
 	fi
 
-	local video=${1:?Video path not set.}
-	video=$(  readlink -f -- "$video"  ) # convert to full path
+	local video=$(  canonicalize "${1:?Video path not set.}"  ) # convert to full path
 	local -r dir=${video%/*} # remove last component
 	video=${video##*/} # basename
 	local -r video=${video%.*} # remove extension
@@ -618,19 +624,19 @@ concat_audio() {
 }
 
 make_condensed() {
-	local -r video=$(  readlink -f -- "${1:?}"  )
+	local -r video=$(  canonicalize "${1:?Video path not set.}"  ) # convert to full path
 	local -r base=$(  make_output_basename "$video"  )
 
 	local -r job_dir=$(mktemp -d --tmpdir="$tmp_dir" -t "$base.job-XXXX")
 
 	local -r temp_audio=$job_dir/$base.ogg
-	local -r output=$(  readlink -f -- "${2:-$immersionpod_dir/$current/$base.ogg}"  )
+	local -r output=$(  canonicalize "${2:-$immersionpod_dir/$current/$base.ogg}"  )
 
 	local -r chunks_dir=$(mktemp -d --tmpdir="$job_dir" -t "chunks-XXXX")
 	local -r chunks_file=$job_dir/chunks.list
 
 	local -r subs_out=$job_dir/$base.srt
-	local -r subs_external=$(  readlink -f -- "${3:-$(  find_external_subtitles "$video"  )}"  )
+	local -r subs_external=$(  canonicalize "${3:-$(  find_external_subtitles "$video"  )}"  )
 
 	local -r subs_track_num=${4-}
 	local -r audio_track_num=${5-}
@@ -731,7 +737,7 @@ notify_send() {
 }
 
 add_file() {
-	local -r source_file=$(  readlink -f -- "${1:?Source file not set.}"  )
+	local -r source_file=$(  canonicalize "${1:?Source file not set.}"  )
 
 	if [[ -f $source_file ]]; then
 		if [[ -z ${global_no_condense-} ]]; then
