@@ -960,17 +960,26 @@ grep_mpd_dir() {
 	grep -Pos 'music_directory\s*"?\K[^"]*(?="?)' -- ~/.config/mpd/mpd.conf
 }
 
+find_xdg_music_dir() {
+	# macOS doesn't have xdg-user-dir, so we'll use ~/Music as the default
+	if command -v xdg-user-dir >/dev/null 2>&1; then
+		xdg-user-dir MUSIC 2>/dev/null
+	else
+		echo "$HOME/Music"
+	fi
+}
+
 choose_mpd_dir() {
 	# Try to find the user's music directory.
 	# If "music_dir" is set in the config file, it takes precedence.
 	# Otherwise, the directory is set to the value from mpd's config.
 	# Different fallbacks are tried in other cases.
 	local dir
-	for dir in "$music_dir" "$(grep_mpd_dir)" "$(xdg-user-dir MUSIC)" ~/Music ~/music; do
+	for dir in "$music_dir" "$(grep_mpd_dir)" "$(find_xdg_music_dir)" ~/Music ~/music; do
 		dir=${dir/\~/$HOME}
 		dir=${dir//\/\//\/}
 		dir=${dir%%/}
-		if [[ -d $dir ]]; then
+		if [[ -n $dir ]] && [[ -d $dir ]]; then
 			echo "$dir"
 			return
 		fi
