@@ -240,6 +240,14 @@ fetch_title() {
 	echo "$title"
 }
 
+_grep() {
+	if command -v ggrep >/dev/null 2>&1; then
+		ggrep "$@"
+	else
+		grep "$@"
+	fi
+}
+
 fetch_episode_number() {
 	local -r file=${1:?}
 	{
@@ -421,7 +429,7 @@ find_external_subtitles() {
 
 	if [[ -z $dir ]] || [[ ! -d $dir ]]; then
 		echo "Error: video directory '$dir' is invalid." >&2
-		exit 1
+		return 1
 	fi
 
 	find "$dir" \
@@ -957,11 +965,15 @@ mkplaylist() {
 
 grep_mpd_dir() {
 	# https://wiki.archlinux.org/index.php/Music_Player_Daemon#Configuration
-	if command -v ggrep >/dev/null; then
-		ggrep -Pos 'music_directory\s*"?\K[^"]*(?="?)' -- ~/.config/mpd/mpd.conf 2>/dev/null
+	_grep -Pos 'music_directory\s*"?\K[^"]*(?="?)' -- ~/.config/mpd/mpd.conf 2>/dev/null
+}
+
+find_xdg_music_dir() {
+	# macOS doesn't have xdg-user-dir, so we'll use ~/Music as the default
+	if command -v xdg-user-dir >/dev/null 2>&1; then
+		xdg-user-dir MUSIC 2>/dev/null
 	else
-		# Fallback for macOS - extract music directory path from mpd.conf
-		grep 'music_directory' ~/.config/mpd/mpd.conf 2>/dev/null | sed -E 's/.*music_directory[[:space:]]*"?([^"]*).*/\1/'
+		echo "$HOME/Music"
 	fi
 }
 
@@ -1090,7 +1102,16 @@ ensure_dirs() {
 		"$tmp_dir"
 }
 
+check_macos_grep() {
+	# if running macOS, ggrep must be installed to support Perl-compatible regular expressions.
+	if [[ "$(uname)" == "Darwin" ]] && ! command -v ggrep >/dev/null 2>&1; then
+		echo "ggrep is not installed. install it with brew." >&2
+		exit 1
+	fi
+}
+
 main() {
+	check_macos_grep
 	# Load configuration file, then apply settings omitted in the config file.
 	read_config_file
 
