@@ -208,6 +208,8 @@ fetch_title() {
 	strip_garbage() {
 		sed -E \
 			-e 's,[_\.], ,g' \
+			-e 's,ADN, ,g' \
+			-e 's,web-dl|varyg|2.?0.?H.?264, ,gi' \
 			-e 's,fansub|vostfr|10bits|Blu.?Ray|BDRip|x26[45]|AAC|flac|\w+-Raws, ,gi' \
 			-e 's|[0-9]{3,4}[pP]||g' \
 			-e 's,^[ -]*,,' \
