@@ -462,7 +462,7 @@ sub_conv() {
 parse_speech_fragments() {
 	# Note: The function incorrectly parses timestamps on certain locales on certain systems,
 	# such as sv_SE.UTF-8 on Tuxedo OS. Force the C locale to fix it.
-	LC_NUMERIC=C awk -F' --> ' -vPADDING="$padding" -vSRT_TIMING_PATTERN="$srt_timing_pattern" '
+	LC_NUMERIC=C awk -F' --> ' -vPADDING="$padding" -vSRT_TIMING_PATTERN="$srt_timing_pattern" -vMAX_CHUNK_LEN_SECONDS="$max_chunk_len_seconds" '
 	function time_parts_to_seconds(hours, mins, secs) {
 		return hours * 3600.0 + mins * 60.0 + secs
 	}
@@ -503,7 +503,7 @@ parse_speech_fragments() {
 		cur["start"] = str_time_to_seconds($1)
 		cur["end"]   = str_time_to_seconds($2)
 
-		if (cur["start"] == cur["end"] || (cur["end"] - cur["start"]) > 30) {
+		if (cur["start"] == cur["end"] || (cur["end"] - cur["start"]) > MAX_CHUNK_LEN_SECONDS) {
 			next
 		}
 
@@ -1072,6 +1072,7 @@ read_config_file() {
 set_config_defaults() {
 	readonly langs=${langs:-japanese,jpn,jp,ja,english,eng,en,russian,rus,ru}
 	readonly prefer_internal_subs=${prefer_internal_subs:-yes}
+	readonly max_chunk_len_seconds=${max_chunk_len_seconds:-30}
 	readonly video_dir=${video_dir:-~/Videos/ongoing}
 	readonly music_dir=${music_dir:-}
 	readonly bitrate=${bitrate:-32k}

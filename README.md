@@ -77,6 +77,9 @@ To configure the program create a config file at `~/.config/immersionpod/config`
   If set to `yes`, try to use internal subtitles when creating condensed audio.
   If `impd` fails to do so, it tries external subtitles.
   If the option is set to `no`, `impd` tries external subtitles first.
+* `max_chunk_len_seconds`.
+  Skip subtitle lines longer than this number of seconds.
+  30 seconds by default.
 * `video_dir`. The default directory where your video files are stored.
   The directory is searched for recently added files when you call `impd rotate`.
 * `bitrate`. Audio bitrate.
