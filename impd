@@ -670,11 +670,13 @@ make_condensed() {
 
 		local start end chunk_path
 		while IFS=, read -r start end; do
-			echo "Processing chunk from $start to $end..." >&3
+			echo "Processing chunk from $start to $end..."
 			chunk_path=$chunks_dir/${base}_${start}-${end}.ogg
 			make_chunk "$temp_audio" "$chunk_path" "$start" "$end"
-			if [[ -f $chunk_path ]]; then echo "file '$chunk_path'"; fi
-		done < <(filter_non_speech_fragments <"${subs_out:?}" | parse_speech_fragments) 3>&1 >"$chunks_file"
+			if [[ -f $chunk_path ]]; then
+				echo "file '$chunk_path'" >&3
+			fi
+		done < <(filter_non_speech_fragments <"${subs_out:?}" | parse_speech_fragments) 3>"$chunks_file"
 
         remove_garbage "$chunks_file"
 		concat_audio "$chunks_file" "$temp_audio"
