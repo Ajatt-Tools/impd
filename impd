@@ -609,11 +609,6 @@ add_metadata() {
 		"$output"
 }
 
-remove_garbage() {
-    local -r chunks_file=$1
-    sed -i '/^file/! s/^/#/' "$chunks_file"
-}
-
 concat_audio() {
 	local -r chunks_file=$1 output=$2
 	ffmpeg -nostdin \
@@ -678,7 +673,6 @@ make_condensed() {
 			fi
 		done < <(filter_non_speech_fragments <"${subs_out:?}" | parse_speech_fragments) 3>"$chunks_file"
 
-        remove_garbage "$chunks_file"
 		concat_audio "$chunks_file" "$temp_audio"
 		add_metadata "$temp_audio" "$output"
 	}
