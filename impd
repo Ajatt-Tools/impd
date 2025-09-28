@@ -414,7 +414,8 @@ find_external_subtitles() {
 		return 1
 	fi
 
-	local video=$(  canonicalize "${1:?Video path not set.}"  ) # convert to full path
+	local video=""
+	video=$(  canonicalize "${1:?Video path not set.}"  ) # convert to full path
 	local -r dir=${video%/*} # remove last component
 	video=${video##*/} # basename
 	local -r video=${video%.*} # remove extension
