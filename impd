@@ -934,14 +934,47 @@ reshuffle() {
 		echo "Error: mpd is not running." >&2
 		return 1
 	fi
+
 	mpc update "$program/$current"
 	mpc crop || true
 	mpc add "$program/$current"
 	mpc shuffle
-	mpc play
+	if ! "${silent:-false}"; then
+		mpc play
+	fi
 }
 
 rotate() {
+	__help() {
+		echo "Usage: ${0##*/} rotate"
+		echo "OPTIONS:"
+		echo -e "  -h    show help"
+		echo -e "  -s    don't resume playback"
+	}
+
+	local flag="" help=false silent=false
+	while getopts 'h s' flag; do
+		case $flag in
+		h)
+			help=true
+			;;
+		s)
+			silent=true
+			;;
+		*)
+			echo "Unknown argument."
+			exit 1
+			;;
+		esac
+	done
+	unset flag
+
+	if "$help"; then
+		__help
+		return
+	fi
+
+
 	add_recent
 	archive
 	reshuffle
