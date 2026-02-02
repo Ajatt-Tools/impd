@@ -691,7 +691,6 @@ make_condensed() {
 	local -r audio_track_num=${5-}
 
 	local -r ignored_chapters=${6-}
-
 	local -r ignored_chapters_file=$job_dir/ignored_chapters.list
 
 	_make_condensed() {
@@ -800,7 +799,7 @@ condense() {
 		"${subtitles-}" \
 		"${subs_track_num-}" \
 		"${audio_track_num-}" \
-		"${ignored_chapters-}" || true
+		"${ignored_chapters-${ignored_chapters_pattern-}}" || true
 }
 
 notify_send() {
@@ -1185,6 +1184,7 @@ set_config_defaults() {
 	readonly padding=${padding:-0.2}
 	readonly line_skip_pattern=${line_skip_pattern:-"^♬〜$|^♪?〜♪?$|^・～$|.*{\\be1}.*"}
 	readonly filename_skip_pattern=${filename_skip_pattern:-"NCOP|NCED"}
+	readonly ignored_chapters_pattern=${ignored_chapters_pattern:-"PV|OP|ED|Intro"}
 	readonly -a extract_audio_add_args
 }
 
