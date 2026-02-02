@@ -100,6 +100,10 @@ Can be used to skip openings and endings by matching lines like `♪〜`.
 * `extract_audio_add_args`.
   Defines an array of additional arguments which should be passed to `ffmpeg`
   when extracting audio tracks from videos.
+* `ignored_chapters_pattern`. Awk RegExp to match chapters in the input file.
+  If it matches, any subtitle inside the chapter start and end time is ignored.
+  By default, it is set to ignore chapters whose name contains `PV`, `OP`, `ED`, or `Intro`.
+
 
 **Example config file:**
 
@@ -113,6 +117,7 @@ padding=0.2
 line_skip_pattern="^♪〜$|^〜♪$"
 filename_skip_pattern="NCOP|NCED"
 extract_audio_add_args=(-af loudnorm=I=-16:TP=-1.5:LRA=11)
+ignored_chapters_pattern="PV|OP|ED|Intro"
 ```
 
 If a value is omitted from the config file, the default value will be used.
