@@ -813,7 +813,7 @@ condense() {
 notify_send() {
 	local -r msg=${*:?}
 	echo "$msg"
-	if command -v notify-send >/dev/null; then
+	if command -v notify-send >/dev/null 2>&1; then
 		notify-send "Immersion pod" "$msg" &
 	fi
 }
@@ -1004,7 +1004,7 @@ archive() {
 }
 
 reshuffle() {
-	if ! command -v mpc >/dev/null; then
+	if ! command -v mpc >/dev/null 2>&1; then
 		echo "Error: mpc is not installed." >&2
 		return 1
 	fi
