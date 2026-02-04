@@ -37,6 +37,11 @@ fetch_ignored_chapters() {
 	local -r video=${1:?}
 	local -r pattern=${2:?}
 
+	if ! command -v ffprobe >/dev/null 2>&1; then
+		echo "Error: ffprobe is not installed." >&2
+		return 1
+	fi
+
 	ffprobe \
 		-loglevel error \
 		-show_chapters \
@@ -89,6 +94,11 @@ probe_tracks() {
 
 	if ! [[ -f $video_filepath ]]; then
 		echo "'$video_filepath' is not a file."
+		return 1
+	fi
+
+	if ! command -v ffprobe >/dev/null 2>&1; then
+		echo "Error: ffprobe is not installed." >&2
 		return 1
 	fi
 
