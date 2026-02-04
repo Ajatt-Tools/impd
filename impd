@@ -56,6 +56,10 @@ fetch_ignored_chapters() {
 filter_ignored_chapters() {
     # filters the timestamps that overlap with the ignored chapters.
 	local -r chapters_file=${1:?}
+	if ! [[ -s $chapters_file ]]; then
+		cat -
+		return
+	fi
 
 	awk -F',' '
 	NR==FNR {
@@ -729,13 +733,7 @@ make_condensed() {
 		done < <(
 			filter_non_speech_fragments <"${subs_out:?}" |
 			parse_speech_fragments |
-			{
-				if [[ -s $ignored_chapters_file ]]; then
-					filter_ignored_chapters "$ignored_chapters_file"
-				else
-					cat
-				fi
-			}
+			filter_ignored_chapters "$ignored_chapters_file"
 		) 3>"$chunks_file"
 
 		concat_audio "$chunks_file" "$temp_audio"
