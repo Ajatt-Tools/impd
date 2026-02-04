@@ -31,6 +31,56 @@ declare -a extract_audio_add_args=('-af' 'loudnorm=I=-16:TP=-1.5:LRA=11')
 # to prevent attempts to convert the same file twice.
 declare -A converted_map
 
+fetch_ignored_chapters() {
+	# Print ignored chapters present in container, 1 chatper per line.
+	# Format: start_time,end_time
+	local -r video=${1:?}
+	local -r pattern=${2:?}
+
+	ffprobe \
+		-loglevel error \
+		-show_chapters \
+		-print_format csv=p=0 \
+		"$video" |
+	awk -F',' -vPATTERN="$pattern" '
+	{
+		start=$4
+		end=$6
+		title=$7
+		if (title ~ PATTERN) {
+			print start "," end
+		}
+	}'
+}
+
+filter_ignored_chapters() {
+    # filters the timestamps that overlap with the ignored chapters.
+	local -r chapters_file=${1:?}
+	if ! [[ -s $chapters_file ]]; then
+		cat -
+		return
+	fi
+
+	awk -F',' '
+	NR==FNR {
+		ignore_start[NR]=$1
+		ignore_end[NR]=$2
+		count=NR
+		next
+	}
+	{
+		start=$1
+		end=$2
+		for (i=1; i<=count; i++) {
+			if (start < ignore_end[i] && end > ignore_start[i]) {
+				next
+			}
+		}
+		print
+	}
+	' "$chapters_file" -
+}
+
 probe_tracks() {
 	# Print tracks present in container, separated by tabs.
 	# Format: index,lang,title,type
@@ -644,6 +694,9 @@ make_condensed() {
 	local -r subs_track_num=${4-}
 	local -r audio_track_num=${5-}
 
+	local -r ignored_chapters=${6-}
+	local -r ignored_chapters_file=$job_dir/ignored_chapters.list
+
 	_make_condensed() {
 		if ! check_output; then
 			return 1
@@ -651,6 +704,11 @@ make_condensed() {
 
 		if [[ -n $subs_track_num ]] && ! [[ $subs_track_num =~ ^[0-9]+$ ]]; then
 			echo "Provided subtitle track number isn't a numeric value."
+			return 1
+		fi
+
+		if [[ -n $ignored_chapters ]] && ! fetch_ignored_chapters "$video" "$ignored_chapters" > "$ignored_chapters_file"; then
+			echo "Error while fetching ignored chapters."
 			return 1
 		fi
 
@@ -672,7 +730,11 @@ make_condensed() {
 			if [[ -f $chunk_path ]]; then
 				echo "file '$chunk_path'" >&3
 			fi
-		done < <(filter_non_speech_fragments <"${subs_out:?}" | parse_speech_fragments) 3>"$chunks_file"
+		done < <(
+			filter_non_speech_fragments <"${subs_out:?}" |
+			parse_speech_fragments |
+			filter_ignored_chapters "$ignored_chapters_file"
+		) 3>"$chunks_file"
 
 		concat_audio "$chunks_file" "$temp_audio"
 		add_metadata "$temp_audio" "$output"
@@ -698,10 +760,11 @@ condense() {
 		echo -n "-s [SUBTITLES FILE] "
 		echo -n "-o [OUTPUT FILE] "
 		echo -n "-t [SUBTITLE TRACK NUMBER] "
+		echo -n "-c [CHAPTER NAME REGEX] "
 		echo "-a [AUDIO TRACK NUMBER] "
 		return 1
 	fi
-	while getopts 'i: s: o: t: a:' flag; do
+	while getopts 'i: s: o: t: c: a:' flag; do
 		case $flag in
 		i)
 			local -r input=${OPTARG}
@@ -715,6 +778,9 @@ condense() {
 			;;
 		t)
 			local -r subs_track_num=${OPTARG}
+			;;
+		c)
+			local -r ignored_chapters=${OPTARG}
 			;;
 		a)
 			local -r audio_track_num=${OPTARG}
@@ -730,7 +796,8 @@ condense() {
 		"${output-}" \
 		"${subtitles-}" \
 		"${subs_track_num-}" \
-		"${audio_track_num-}" || true
+		"${audio_track_num-}" \
+		"${ignored_chapters-${ignored_chapters_pattern-}}" || true
 }
 
 notify_send() {
@@ -1065,6 +1132,7 @@ echo_help() {
 		  -o|optional output file
 		  -s|optional subtitle file
 		  -t|optional subtitle track number, if internal subtitles should be used
+		  -c|optional regex of chapter names, internal chapter names matching this will be ignored (e.g. OP|ED|Preview)
 		  -a|optional audio track number
 	EOF
 	echo
@@ -1114,6 +1182,7 @@ set_config_defaults() {
 	readonly padding=${padding:-0.2}
 	readonly line_skip_pattern=${line_skip_pattern:-"^♬〜$|^♪?〜♪?$|^・～$|.*{\\be1}.*"}
 	readonly filename_skip_pattern=${filename_skip_pattern:-"NCOP|NCED"}
+	readonly ignored_chapters_pattern=${ignored_chapters_pattern:-"PV|OP|ED|Intro"}
 	readonly -a extract_audio_add_args
 }
 
