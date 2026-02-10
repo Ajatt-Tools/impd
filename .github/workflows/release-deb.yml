@@ -1,0 +1,40 @@
+name: Release Debian Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+
+      - name: Install build dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y dpkg-dev
+
+      - name: Make build script executable
+        run: chmod +x -- ./.github/workflows/build-deb.sh
+
+      - name: Build DEB package
+        run: ./.github/workflows/build-deb.sh
+        env:
+          VERSION: ${{ github.ref_name }}
+
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          prerelease: false
+          make_latest: true
+          generate_release_notes: true
+          name: "impd ${{github.ref_name}}"
+          files: |
+            *.deb
