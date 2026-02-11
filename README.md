@@ -24,6 +24,14 @@ Arch Linux users can install the
 [impd-git](https://aur.archlinux.org/packages/impd-git/)
 AUR package and skip to [Configuration](#configuration).
 
+### Debian-based distros
+
+Ubuntu and Debian users can install the provided .deb package.
+
+```bash
+wget https://github.com/Ajatt-Tools/impd/releases/latest/download/immersionpod.deb && sudo dpkg -i immersionpod.deb
+```
+
 ### Other distros
 
 If you want to package `impd` for your distro and know how to do it,
@@ -354,6 +362,6 @@ If you want to discuss this program, have found a bug, or want to participate in
 please join [our community](https://tatsumoto-ren.github.io/blog/join-our-community.html).
 I look forward to suggestions and pull requests!
 
-My special thanks to all my
-[Patreon](https://www.patreon.com/bePatron?u=43555128)
-supporters for making this project possible.
+My special thanks to everybody who
+[donated](https://ajatt.top/blog/donating-to-tatsumoto.html)
+to make this project possible.
