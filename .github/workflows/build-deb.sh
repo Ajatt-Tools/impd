@@ -45,6 +45,7 @@ EOF
 cp -- impd "$PACKAGE_DIR/usr/bin/"
 cp -- README.md "$PACKAGE_DIR/usr/share/doc/$PACKAGE_NAME/"
 cp -- LICENSE "$PACKAGE_DIR/usr/share/licenses/$PACKAGE_NAME/"
+chmod +x -- "$PACKAGE_DIR/usr/bin/impd"
 
 # Build the DEB package
 dpkg-deb --build "$PACKAGE_DIR" "$OUTPUT_FILE"
