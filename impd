@@ -18,6 +18,8 @@
 #
 # Any modifications to this file must keep this entire header intact.
 
+set -euo pipefail
+
 readonly program='immersionpod'
 readonly version=v0.10
 readonly current='current'
@@ -31,13 +33,17 @@ declare -a extract_audio_add_args=('-af' 'loudnorm=I=-16:TP=-1.5:LRA=11')
 # to prevent attempts to convert the same file twice.
 declare -A converted_map
 
+is_installed() {
+	[[ -x "$(command -v "$1")" ]]
+}
+
 fetch_ignored_chapters() {
 	# Print ignored chapters present in container, 1 chatper per line.
 	# Format: start_time,end_time
 	local -r video=${1:?}
 	local -r pattern=${2:?}
 
-	if ! command -v ffprobe >/dev/null 2>&1; then
+	if ! is_installed ffprobe; then
 		echo "Error: ffprobe is not installed." >&2
 		return 1
 	fi
@@ -97,7 +103,7 @@ probe_tracks() {
 		return 1
 	fi
 
-	if ! command -v ffprobe >/dev/null 2>&1; then
+	if ! is_installed ffprobe; then
 		echo "Error: ffprobe is not installed." >&2
 		return 1
 	fi
@@ -813,7 +819,7 @@ condense() {
 notify_send() {
 	local -r msg=${*:?}
 	echo "$msg"
-	if command -v notify-send >/dev/null 2>&1; then
+	if is_installed notify-send; then
 		notify-send "Immersion pod" "$msg" &
 	fi
 }
@@ -1004,7 +1010,7 @@ archive() {
 }
 
 reshuffle() {
-	if ! command -v mpc >/dev/null 2>&1; then
+	if ! is_installed mpc; then
 		echo "Error: mpc is not installed." >&2
 		return 1
 	fi
@@ -1077,7 +1083,7 @@ grep_mpd_dir() {
 
 find_xdg_music_dir() {
 	# macOS doesn't have xdg-user-dir, so we'll use ~/Music as the default
-	if command -v xdg-user-dir >/dev/null 2>&1; then
+	if is_installed xdg-user-dir; then
 		xdg-user-dir MUSIC 2>/dev/null
 	else
 		echo "$HOME/Music"
