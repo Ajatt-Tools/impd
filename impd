@@ -234,6 +234,10 @@ best_track() {
 find_recent_files() {
 	local -r sep=$([[ -n ${1-} ]] && echo 0)
 	# Search files that have been modified in the last N days
+	if ! [[ -d "$video_dir" ]]; then
+		echo "Error: $video_dir does not exist." >&2
+		return 1
+	fi
 	find "$video_dir" \
 		-type f \
 		-mtime "-$recent_threshold" \
