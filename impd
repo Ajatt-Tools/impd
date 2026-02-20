@@ -176,13 +176,14 @@ filter_tracks() {
 }
 
 preferred_languages() {
-	local pref_langs=${langs,,}
+	local pref_langs=$(echo "${langs}" | tr '[:upper:]' '[:lower:]')
 	echo "${pref_langs//,/$'\n'}"
 }
 
 guess_track_priority() {
 	# Sets some numeric weight for track. Used when sorting tracks.
-	local -r track_lang=${1,,} track_title=${2,,}
+	local -r track_lang=$(echo "${1}" | tr '[:upper:]' '[:lower:]')
+	local -r track_title=$(echo "${2}" | tr '[:upper:]' '[:lower:]')
 	local weight=0
 
 	# impd wants to use full subtitle tracks and avoid other tracks if possible.
@@ -227,7 +228,7 @@ best_track() {
 	if [[ -n $tracks ]]; then
 		while IFS=$'\t' read -r track_num track_lang track_title; do
 			printf -- '%d\t%d\n' "$track_num" "$(guess_track_priority "$track_lang" "$track_title")"
-		done <<<"$tracks" | sort --stable -g -k 2 -t $'\t' | cut -f1 | head -1
+		done <<<"$tracks" | sort -g -k 2 -t $'\t' | cut -f1 | head -1
 	fi
 }
 
@@ -309,18 +310,25 @@ fetch_title() {
 	echo "$title"
 }
 
+_grep() {
+	if command -v ggrep >/dev/null 2>&1; then
+		ggrep "$@"
+	else
+		grep "$@"
+	fi
+}
+
 fetch_episode_number() {
 	local -r file=${1:?}
 	{
 		echo 01
-		grep -Pio '\[\K\d+(?=\])' <<<"${file%.*}"
 		sed \
 			-Ee 's/(\[|\()[^])]*(\]|\))//g' \
 			-Ee 's/[0-9]{3,4}[pP]//g' \
 			-Ee 's/(19|20)[0-9]{2}//g' \
 			-Ee 's/v[.0-9-]{1,4}//g' \
 			-e 's/_/ /g' <<<"${file%.*}" |
-			grep -Pio '(?<=[＃#. pe-])[[:digit:]]{1,3}\b'
+			_grep -Eio '[＃#. pe-][[:digit:]]{1,3}\b' | _grep -Eo '[[:digit:]]{1,3}'
 	} | tail -1
 }
 
@@ -443,7 +451,7 @@ make_output_basename() {
 make_uncondensed() {
 	local -r input=${1:?}
 	local -r base=$(  make_output_basename "$input"  )
-	local -r job_dir=$(mktemp -d --tmpdir="$tmp_dir" -t "make_uncondensed.job-XXXX")
+	local -r job_dir=$(mktemp -d "$tmp_dir/make_uncondensed.job-XXXX")
 	local -r temp_audio=$job_dir/$base.ogg
 	local -r output=$immersionpod_dir/$current/$base.ogg
 
@@ -492,7 +500,7 @@ find_external_subtitles() {
 
 	if [[ -z $dir ]] || [[ ! -d $dir ]]; then
 		echo "Error: video directory '$dir' is invalid." >&2
-		exit 1
+		return 1
 	fi
 
 	find "$dir" \
@@ -501,7 +509,7 @@ find_external_subtitles() {
 		-regextype posix-extended \
 		-iregex '.*\.(ass|srt)$' \
 		-print0 |
-		grep -Fiz --max-count=1 "$video" |
+		_grep -Fiz --max-count=1 "$video" |
 		tr '\0' '\n' # fix no newline at the end
 }
 
@@ -700,12 +708,12 @@ make_condensed() {
 	local -r video=$(  canonicalize "${1:?Video path not set.}"  ) # convert to full path
 	local -r base=$(  make_output_basename "$video"  )
 
-	local -r job_dir=$(mktemp -d --tmpdir="$tmp_dir" -t "$base.job-XXXX")
+	local -r job_dir=$(mktemp -d "$tmp_dir/$base.job-XXXX")
 
 	local -r temp_audio=$job_dir/$base.ogg
 	local -r output=$(  canonicalize "${2:-$immersionpod_dir/$current/$base.ogg}"  )
 
-	local -r chunks_dir=$(mktemp -d --tmpdir="$job_dir" -t "chunks-XXXX")
+	local -r chunks_dir=$(mktemp -d "$job_dir/chunks-XXXX")
 	local -r chunks_file=$job_dir/chunks.list
 
 	local -r subs_out=$job_dir/$base.srt
@@ -844,7 +852,7 @@ add_file() {
 
 add_remote() {
 	local -r source_url=${1:?}
-	local -r job_dir=$(mktemp -d --tmpdir="$tmp_dir" -t "download.job-XXXX")
+	local -r job_dir=$(mktemp -d "$tmp_dir/download.job-XXXX")
 	(
 		cd -- "$job_dir" && curl -L -O "$source_url"
 		for file in "$job_dir"/*; do
@@ -927,7 +935,7 @@ add() {
 
 file_can_be_added() {
 	local -r file=$1
-	grep -Pqv "$filename_skip_pattern" <<<"$file" && is_media "$file"
+	_grep -Eqv "$filename_skip_pattern" <<<"$file" && is_media "$file"
 }
 
 add_stdin() {
@@ -980,7 +988,7 @@ download_yt() {
 
 add_yt() {
 	local -r source_url=${1:?}
-	local -r job_dir=$(mktemp -d --tmpdir="$tmp_dir" -t "youtube-dl.job-XXXX")
+	local -r job_dir=$(mktemp -d "$tmp_dir/youtube-dl.job-XXXX")
 
 	download_yt -o "$job_dir/%(uploader)s - %(title).60s.%(ext)s" "$source_url"
 
@@ -1073,16 +1081,23 @@ mkplaylist() {
 
 	find "$immersionpod_dir/$current" \
 		-type f \
-		-printf '%P\n' \
-		-regextype posix-extended \
-		-iregex '.*\.(mp3|opus|ogg|m4a|wav|wma)$' |
+		-iname '*.mp3' -o -iname '*.opus' -o -iname '*.ogg' -o -iname '*.m4a' -o -iname '*.wav' -o -iname '*.wma' |
 		shuf > "$m3u_path"
 	echo "created file '$m3u_path'"
 }
 
 grep_mpd_dir() {
 	# https://wiki.archlinux.org/index.php/Music_Player_Daemon#Configuration
-	grep -Pos 'music_directory\s*"?\K[^"]*(?="?)' -- ~/.config/mpd/mpd.conf
+	_grep -Pos 'music_directory\s*"?\K[^"]*(?="?)' -- ~/.config/mpd/mpd.conf 2>/dev/null
+}
+
+find_xdg_music_dir() {
+	# macOS doesn't have xdg-user-dir, so we'll use ~/Music as the default
+	if command -v xdg-user-dir >/dev/null 2>&1; then
+		xdg-user-dir MUSIC 2>/dev/null
+	else
+		echo "$HOME/Music"
+	fi
 }
 
 find_xdg_music_dir() {
@@ -1187,7 +1202,7 @@ version() {
 read_config_file() {
 	if [[ -f $config_filepath ]]; then
 		# shellcheck source=/dev/null
-		source -- <(grep -xP '^[a-z_]+=.+$' -- "$config_filepath")
+		source -- <(_grep -xP '^[a-z_]*=.*$' -- "$config_filepath")
 	fi
 }
 
@@ -1213,7 +1228,16 @@ ensure_dirs() {
 		"$tmp_dir"
 }
 
+check_macos_grep() {
+	# if running macOS, ggrep must be installed to support Perl-compatible regular expressions.
+	if [[ "$(uname)" == "Darwin" ]] && ! command -v ggrep >/dev/null 2>&1; then
+		echo "ggrep is not installed. install it with brew." >&2
+		exit 1
+	fi
+}
+
 main() {
+	check_macos_grep
 	# Load configuration file, then apply settings omitted in the config file.
 	read_config_file
 
