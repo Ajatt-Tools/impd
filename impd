@@ -1213,7 +1213,16 @@ ensure_dirs() {
 		"$tmp_dir"
 }
 
+check_macos_grep() {
+	# if running macOS, ggrep must be installed to support Perl-compatible regular expressions.
+	if [[ "$(uname)" == "Darwin" ]] && ! is_installed ggrep; then
+		echo "ggrep is not installed. install it with brew: https://formulae.brew.sh/formula/grep" >&2
+		exit 1
+	fi
+}
+
 main() {
+	check_macos_grep
 	# Load configuration file, then apply settings omitted in the config file.
 	read_config_file
 
