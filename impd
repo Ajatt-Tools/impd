@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Immersion Pod - Passive listening management tool
 # Copyright (C) 2021-2026 Ajatt-Tools and contributors. https://github.com/Ajatt-Tools
@@ -19,6 +19,11 @@
 # Any modifications to this file must keep this entire header intact.
 
 set -euo pipefail
+
+if [[ ${BASH_VERSION%%.*} -lt 5 ]]; then
+	echo "Bash version is older than 5. Exiting."
+	exit 1
+fi
 
 readonly program='immersionpod'
 readonly version=v0.10
