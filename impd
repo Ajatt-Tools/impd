@@ -36,7 +36,7 @@ declare -a extract_audio_add_args=('-af' 'loudnorm=I=-16:TP=-1.5:LRA=11')
 
 # Keep a map with all file names already present in the impd directory
 # to prevent attempts to convert the same file twice.
-declare -A converted_map
+declare -A converted_map=()
 
 is_installed() {
 	[[ -x "$(command -v "$1")" ]]
