@@ -8,13 +8,18 @@
 
 > AJATT-style passive listening and condensed audio without bloat.
 
-Passive immersion is one of the key activities in
-[AJATT](https://tatsumoto.neocities.org/blog/foreword.html#all-japanese-all-the-time).
+[Passive immersion](https://ajatt.top/blog/passive-immersion.html) is one of the key activities in
+[AJATT](https://ajatt.top/blog/foreword.html#all-japanese-all-the-time).
 This program lets
 [mpd](https://wiki.archlinux.org/index.php/Music_Player_Daemon)
 users convert foreign language movies and TV shows to audio and use it for passive listening.
 `impd` supports **condensed audio** and creates it by default
 if it finds subtitles in the container or externally.
+
+Since [Ajatt-Tools](https://github.com/Ajatt-Tools) is a distributed effort, we **highly welcome new contributors**!
+[Join the organization](https://github.com/Ajatt-Tools/.github/blob/main/profile/README.md#join-us),
+feel free to browse the [issue tracker](https://github.com/Ajatt-Tools/impd/issues) and submit pull requests.
+You can also find us on [DJT](https://ajatt.top/blog/join-our-community.html).
 
 ## Installation
 
