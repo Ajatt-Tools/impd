@@ -3,8 +3,8 @@
 [![AUR](https://img.shields.io/badge/AUR-install-blue.svg)](https://aur.archlinux.org/packages/impd-git/)
 [![Chat](https://img.shields.io/badge/chat-join-green)](https://tatsumoto-ren.github.io/blog/join-our-community.html)
 [![Channel](https://shields.io/badge/channel-subscribe-blue?logo=telegram&color=3faee8)](https://t.me/ajatt_tools)
-[![Patreon](https://img.shields.io/badge/patreon-support-orange)](https://www.patreon.com/bePatron?u=43555128)
 ![License](https://img.shields.io/github/license/Ajatt-Tools/impd)
+[![Support](https://img.shields.io/badge/support-developer-orange?logo=Patreon&logoColor=orange)](https://ajatt.top/blog/donating-to-tatsumoto.html)
 
 > AJATT-style passive listening and condensed audio without bloat.
 
