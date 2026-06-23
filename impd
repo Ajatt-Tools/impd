@@ -874,7 +874,7 @@ mime_type() {
 }
 
 is_media() {
-	[[ $(mime_type "$1") =~ ^(video|audio)\/.+ ]]
+	[[ $(mime_type "$1") =~ ^(video|audio)\/.+ ]] && [[ "$1" != *'.!qB' ]]
 }
 
 is_ogg_audio() {
