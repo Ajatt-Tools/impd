@@ -34,7 +34,8 @@ AUR package and skip to [Configuration](#configuration).
 Ubuntu and Debian users can install the provided .deb package.
 
 ```bash
-wget https://github.com/Ajatt-Tools/impd/releases/latest/download/immersionpod.deb && sudo dpkg -i immersionpod.deb
+wget https://github.com/Ajatt-Tools/impd/releases/latest/download/immersionpod.deb
+sudo apt install ./immersionpod.deb
 ```
 
 ### Other distros
