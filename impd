@@ -763,7 +763,7 @@ make_condensed() {
 	local -r subs_track_num=${4-}
 	local -r audio_track_num=${5-}
 
-	local -r ignored_chapters=${6-}
+	local -r ignored_chapters=${6-${ignored_chapters_pattern-}}
 	local -r ignored_chapters_file=$job_dir/ignored_chapters.list
 
 	_make_condensed() {
